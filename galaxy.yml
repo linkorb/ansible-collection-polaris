@@ -1,22 +1,23 @@
 # See https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 
-namespace: community
-name: FIXME
+namespace: linkorb
+name: polaris
 version: 0.1.0
 readme: README.md
 authors:
-  - YOUR NAME (github.com/YOURGITHUB)
-description: null
+  - LinkORB (github.com/linkorb)
+description: Webapp Infrastructure
 license_file: LICENSE
 tags:
-# tags so people can search for collections https://galaxy.ansible.com/search
-# tags are all lower-case, no spaces, no dashes.
-  - example1
-  - example2
-repository: https://github.com/ansible-collections/community.REPO_NAME
+  - juicefs
+  - tailscale
+  - prometheus
+  - docker
+  - swarm
+repository: https://github.com/linkorb/ansible-collection-polaris
 #documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
-homepage: https://github.com/ansible-collections/community.REPO_NAME
-issues: https://github.com/ansible-collections/community.REPO_NAME/issues
+homepage: https://github.com/linkorb/ansible-collection-polaris
+issues: https://github.com/linkorb/ansible-collection-polaris/issues
 build_ignore:
 # https://docs.ansible.com/ansible/devel/dev_guide/developing_collections_distributing.html#ignoring-files-and-folders
   - .gitignore
