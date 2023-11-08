@@ -1,0 +1,7 @@
+- name: "Install docker.py"
+  ansible.builtin.include_role:
+    name: geerlingguy.pip
+  vars:
+    pip_install_packages:
+    - name: docker  # docker python sdk (required by community.docker.docker_swarm module)
+      version: "6.0.1"
