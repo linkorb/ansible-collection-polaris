@@ -2,9 +2,8 @@ codeowners:
 - owners:
   - '@joostfaassen'
   pattern: '*'
-description: ''
+description: 'Webapp Infrastructure as code. An Ansible Collection.'
 license: gpl-v3
 name: ansible-collection-polaris
-readme:
-  enable_generation: false
 type: other
+visibility: public
