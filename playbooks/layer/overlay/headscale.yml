@@ -1,0 +1,9 @@
+- name: Shipyard - headscale
+  hosts: "{{ polaris_hosts }}"
+  tags:
+    - polaris.layer.overlay
+    - polaris.layer.overlay.headscale
+  roles:
+    - role: linkorb.shipyard
+      vars:
+        shipyard_tag: headscale

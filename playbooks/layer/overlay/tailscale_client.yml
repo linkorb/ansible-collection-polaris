@@ -1,0 +1,14 @@
+- name: Setup Tailscale
+  hosts: "{{ polaris_hosts }}"
+  tags:
+    - polaris.layer.overlay
+    - polaris.layer.overlay.tailscale_client
+  tasks:
+    - name: Setup tailscale client
+      include_role:
+        name: artis3n.tailscale
+      vars:
+        tailscale_args: "{{ polaris_tailscale_args }}"
+        tailscale_authkey: "{{ polaris_tailscale_authkey }}"
+
+

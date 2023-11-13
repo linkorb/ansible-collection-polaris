@@ -1,0 +1,14 @@
+- name: Baseline - configuration
+  hosts: "{{ polaris_hosts }}"
+  become: true
+  tags:
+    - polaris.layer.baseline
+    - polaris.layer.baseline.config
+  roles:
+    - role: geerlingguy.pip
+      vars:
+        pip_install_packages:
+          - name: docker  # docker python sdk (required by docker / swarm module)
+            version: "6.0.1"
+          - name: jsondiff
+    - role: ypsman.ipv6_disable

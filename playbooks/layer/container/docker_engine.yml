@@ -1,0 +1,42 @@
+- name: Docker engine installation
+  hosts: "{{ polaris_hosts }}"
+  become: true
+  tags:
+    - polaris.layer.container
+    - polaris.layer.container.docker_engine
+  roles:
+    - geerlingguy.docker
+
+- name: Docker config
+  hosts: "{{ polaris_hosts }}"
+  tags:
+    - polaris.layer.container
+    - polaris.layer.container.docker_engine
+  tasks:
+    - name: Adding docker users (for use without sudo)
+      user:
+        name: "{{ item }}"
+        append: true
+        groups: docker
+      become: true
+      with_items: '{{ polaris_docker_users }}'
+    - name: Install and enable juicedata/juicefs volume plugin
+      community.docker.docker_plugin:
+        plugin_name: juicedata/juicefs
+        state: enable
+      become: true
+
+- name: Docker registry login
+  hosts: docker
+  tags:
+    - polaris.layer.container
+    - polaris.layer.container.docker_engine
+    - polaris.layer.container.docker_engine.registry_login
+  tasks:
+    - name: Login to the Docker Container Registry
+      community.general.docker_login:
+        registry: "{{ polaris_docker_registry_login_registry }}"
+        username: "{{ polaris_docker_registry_login_username }}"
+        password: "{{ polaris_docker_registry_login_pat }}"
+        # reauthorize: true
+

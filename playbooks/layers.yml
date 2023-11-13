@@ -1,0 +1,49 @@
+- ansible.builtin.import_playbook: linkorb.polaris.layer.baseline.all
+- ansible.builtin.import_playbook: linkorb.polaris.layer.container.all
+- ansible.builtin.import_playbook: linkorb.polaris.layer.overlay.all
+- ansible.builtin.import_playbook: linkorb.polaris.layer.app.all
+
+
+# - ansible.builtin.import_playbook: linkorb.polaris.layer.lb
+#   tags: polaris_layer_lb
+
+# - ansible.builtin.import_playbook: linkorb.polaris.layer.logging_control
+#   tags: polaris_layer_logging_control
+# - ansible.builtin.import_playbook: linkorb.polaris.layer.logging_node
+#   tags: polaris_layer_logging_node
+
+
+# hardware-layer
+# Multipass, Terraform, etc (optional)
+
+# load-balancer / ingress layer:
+# service: load balancers (traefik, ssl offloading, swarm provider)
+
+# logging-layer
+# control: deploy loki as docker stack (shipyard)
+# all: setup promtail reporting to loki (optional, fluentd, fluentbit)
+
+#==========
+# database-layer:
+# service: deploy container-based mysql / mariadb / postgres clusters
+# service: dbdb for snapshots, etc
+# storage-layer:
+# service: initialize juicefs filesystems on mariadb
+# service: run juicefs as S3 service (optional: with webdav too?)
+# all: install juicefs clients, connecting to mysql for metadata
+# service: nfs servers (if needed? Maybe juicefs covers these use-cases)
+# monitoring-layer:
+# all: setup prometheus node exporter available on overlay ip
+# control: deploy prometheus + alert manager
+# control: goalert + xping
+# control: deploy grafana
+# control: deploy jaeger
+# management-layer:
+# control: deploy rundeck
+# … maybe portainer, kubernetes dashboards, argo, etc
+# backup-layer
+# service: backuppc, pull from hosts
+# … something for juicefs / object storage buckets
+# firewall-layer
+# Generated multi-host iptables-based rules, based on platform + app rules
+

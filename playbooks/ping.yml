@@ -1,0 +1,5 @@
+- hosts: "{{ polaris_hosts }}"
+  gather_facts: false
+  tasks:
+    - name: Ping test
+      ping:

@@ -1,0 +1,9 @@
+- name: Shipyard - app stacks
+  hosts: "{{ polaris_hosts }}"
+  tags:
+    - polaris.layer.app
+    - polaris.layer.app.stacks
+  roles:
+    - role: linkorb.shipyard
+      vars:
+        shipyard_tag: app

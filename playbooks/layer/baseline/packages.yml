@@ -1,0 +1,22 @@
+- name: Baseline - packages
+  hosts: "{{ polaris_hosts }}"
+  become: true
+  tags:
+    - polaris.layer.baseline
+    - polaris.layer.baseline.packages
+  tasks:
+    - name: install default apt packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - ntp
+          - vim
+          - nmap
+          - ngrep
+        state: present
+

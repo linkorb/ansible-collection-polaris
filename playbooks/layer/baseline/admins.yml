@@ -1,0 +1,10 @@
+- name: Baseline - admins
+  hosts: "{{ polaris_hosts }}"
+  become: yes
+  tags:
+    - polaris.layer.baseline
+    - polaris.layer.baseline.admins
+  roles:
+    - role: cchurch.admin-users
+      admin_users: "{{ polaris_admins_active }}"
+      admin_users_to_remove: "{{ polaris_admins_removed }}"

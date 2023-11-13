@@ -1,0 +1,3 @@
+- import_playbook: "linkorb.polaris.layer.container.docker_engine"
+- import_playbook: "linkorb.polaris.layer.container.swarm"
+# - import_playbook: "linkorb.polaris.layer.container.kubernetes"
