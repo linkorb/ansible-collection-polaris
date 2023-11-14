@@ -27,7 +27,7 @@
       become: true
 
 - name: Docker registry login
-  hosts: docker
+  hosts: "{{ polaris_hosts }}"
   tags:
     - polaris.layer.container
     - polaris.layer.container.docker_engine

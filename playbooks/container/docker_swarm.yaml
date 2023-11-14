@@ -1,12 +1,16 @@
 - name: Docker Swarms are initialised on Primary Swarm Managers
   hosts: "{{ polaris_primary_swarm_managers }}"
   become: true
+  tags:
+    - polaris.container
+    - polaris.container.swarm
   tasks:
   - name: Host has dependencies of ansible modules
     ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml
   - name: Initialise a Swarm on this Host
     community.docker.docker_swarm:
       state: present
+      #advertise_addr: "{{ polaris_docker_swarm_advertise_addr }}" # tailnet ip
     register: swarm_initialisation_info
   - name: Peek at swarm_initialisation_info
     debug:
@@ -17,9 +21,13 @@
       swarm_initialisation_info: "{{ swarm_initialisation_info }}"
       cacheable: yes
 
-- name: Swarm Managers are joined to their Swarms
+
+- name: Secondary Swarm Managers are joined to their Swarms
   hosts: "{{ polaris_secondary_swarm_managers }}"
   become: true
+  tags:
+    - polaris.container
+    - polaris.container.swarm
   tasks:
   - name: Host has dependencies of ansible modules
     ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml
@@ -37,9 +45,13 @@
       remote_addrs:
       - "{{ target_swarm_facts.default_ipv4.address | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
 
+
 - name: Swarm Workers are joined to their Swarms
   hosts: "{{ polaris_swarm_nodes }}"
   become: true
+  tags:
+    - polaris.container
+    - polaris.container.swarm
   tasks:
   - name: Host has dependencies of ansible modules
     ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml

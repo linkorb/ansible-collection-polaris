@@ -1,15 +1,49 @@
-- ansible.builtin.import_playbook: linkorb.polaris.layer.baseline.all
-- ansible.builtin.import_playbook: linkorb.polaris.layer.container.all
-- ansible.builtin.import_playbook: linkorb.polaris.layer.overlay.all
-- ansible.builtin.import_playbook: linkorb.polaris.layer.app.all
+# Common layer
+- name: Hosts have standard configuration
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.config
+- name: Hosts have useful packages
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.packages
+- name: Hosts have admin users
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.admins
+- name: Hosts are hardened
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.hardening
+- name: Hosts are JuiceFS clients
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.juicefs_client
 
 
-# - ansible.builtin.import_playbook: linkorb.polaris.layer.lb
+# Swarm Layer
+- name: Hosts are Docker Engines
+  ansible.builtin.import_playbook: linkorb.polaris.container.docker_engine
+- name: Hosts are nodes in Docker Swarms
+  ansible.builtin.import_playbook: linkorb.polaris.container.docker_swarm
+
+
+# Kubernetes layer
+#- name: Hosts are nodes in k8s clusters
+#  ansible.builtin.import_playbook: linkorb.polaris.container.kubernetes
+
+
+# Overlay layer
+- name: Hosts are Headscale nodes
+  ansible.builtin.import_playbook: linkorb.polaris.overlay.headscale
+- name: Hosts are Tailscale clients
+  ansible.builtin.import_playbook: linkorb.polaris.overlay.tailscale_client
+
+
+# App layer
+- name: Hosts are running app stacks
+  ansible.builtin.import_playbook: linkorb.polaris.app.stacks
+#- name: Hosts are running helmfile
+#  ansible.builtin.import_playbook: linkorb.polaris.apps.helmfile
+
+
+
+# - ansible.builtin.import_playbook: linkorb.polaris.lb
 #   tags: polaris_layer_lb
 
-# - ansible.builtin.import_playbook: linkorb.polaris.layer.logging_control
+# - ansible.builtin.import_playbook: linkorb.polaris.logging_control
 #   tags: polaris_layer_logging_control
-# - ansible.builtin.import_playbook: linkorb.polaris.layer.logging_node
+# - ansible.builtin.import_playbook: linkorb.polaris.logging_node
 #   tags: polaris_layer_logging_node
 
 
@@ -46,4 +80,3 @@
 # … something for juicefs / object storage buckets
 # firewall-layer
 # Generated multi-host iptables-based rules, based on platform + app rules
-

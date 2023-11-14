@@ -1,5 +1,0 @@
-- import_playbook: "linkorb.polaris.layer.baseline.config"
-- import_playbook: "linkorb.polaris.layer.baseline.packages"
-- import_playbook: "linkorb.polaris.layer.baseline.admins"
-- import_playbook: "linkorb.polaris.layer.baseline.hardening"
-- import_playbook: "linkorb.polaris.layer.baseline.juicefs_client"
