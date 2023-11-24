@@ -1,5 +1,5 @@
 - name: Baseline - packages
-  hosts: "{{ polaris_hosts }}"
+  hosts: polaris_hosts
   become: true
   tags:
     - polaris.layer.baseline

@@ -1,5 +1,5 @@
 - name: Shipyard - headscale
-  hosts: "{{ polaris_hosts }}"
+  hosts: polaris_hosts
   tags:
     - polaris.layer.overlay
     - polaris.layer.overlay.headscale

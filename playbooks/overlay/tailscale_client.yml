@@ -1,5 +1,5 @@
 - name: Setup Tailscale
-  hosts: "{{ polaris_hosts }}"
+  hosts: polaris_hosts
   tags:
     - polaris.layer.overlay
     - polaris.layer.overlay.tailscale_client

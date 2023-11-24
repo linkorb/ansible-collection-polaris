@@ -1,7 +1,7 @@
 # Configure users
 
 - name: users
-  hosts: "{{ polaris_hosts }}" # use -l to limit your hosts
+  hosts: polaris_hosts # use -l to limit your hosts
   become: yes
   tags:
     - polaris.
@@ -10,7 +10,7 @@
       admin_users: "{{ polaris_admins_active }}"
 
 - name: python
-  hosts: "{{ polaris_hosts }}" # use -l to limit your hosts
+  hosts: polaris_hosts # use -l to limit your hosts
   become: true
   tags:
     - python

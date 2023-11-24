@@ -1,5 +1,5 @@
 - name: Baseline - admins
-  hosts: "{{ polaris_hosts }}"
+  hosts: polaris_hosts
   become: yes
   tags:
     - polaris.layer.baseline

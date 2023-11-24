@@ -119,6 +119,10 @@ ansible-galaxy collection install linkorb.polaris:==0.1.0
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
 
+### Organise your Inventory
+
+Organise your Inventory into a group named "`polaris_hosts`".
+
 ## Release notes
 
 See the [changelog](https://github.com/linkorb/ansible-collection-polaris/tree/main/CHANGELOG.rst).

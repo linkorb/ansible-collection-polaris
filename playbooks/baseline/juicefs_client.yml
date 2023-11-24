@@ -1,5 +1,5 @@
 - name: Install juicefs client (PPA + package)
-  hosts: "{{ polaris_hosts }}"
+  hosts: polaris_hosts
   become: true
   tags:
     - polaris.layer.baseline
