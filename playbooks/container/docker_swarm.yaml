@@ -1,5 +1,5 @@
 - name: Docker Swarms are initialised on Primary Swarm Managers
-  hosts: "{{ polaris_primary_swarm_managers }}"
+  hosts: "{{ polaris_primary_swarm_managers | default('polaris_primary_swarm_managers') }}"
   become: true
   tags:
     - polaris.container
@@ -23,7 +23,7 @@
 
 
 - name: Secondary Swarm Managers are joined to their Swarms
-  hosts: "{{ polaris_secondary_swarm_managers }}"
+  hosts: "{{ polaris_secondary_swarm_managers | default('polaris_secondary_swarm_managers') }}"
   become: true
   tags:
     - polaris.container
@@ -47,7 +47,7 @@
 
 
 - name: Swarm Workers are joined to their Swarms
-  hosts: "{{ polaris_swarm_nodes }}"
+  hosts: "{{ polaris_swarm_nodes | default('polaris_swarm_nodes') }}"
   become: true
   tags:
     - polaris.container

@@ -71,7 +71,28 @@ See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guid
 
 ### Organise your Inventory
 
+```ini
+[polaris_hosts]
+the-monitor
+the-swarm-manager
+swarm-node-1
+swarm-node-2
+swarm-node-3
+
+[polaris_primary_swarm_managers]
+the-swarm-manager
+
+[polaris_swarm_nodes]
+swarm-node-1 join_swarm_initialised_by=the-swarm-manager
+swarm-node-2 join_swarm_initialised_by=the-swarm-manager
+swarm-node-3 join_swarm_initialised_by=the-swarm-manager
+```
+
 Organise your Inventory into a group named "`polaris_hosts`".
+
+Place hosts that will be manager Docker Swarm nodes into a group named "`polaris_primary_swarm_managers`".  A Docker Swarm will be initialised on each host in this group.
+
+Place hosts that will be Docker Swarm nodes into a group named "`polaris_swarm_nodes`".  Provide the host var named "`join_swarm_initialised_by`" for each host in this group.  The node will join the swarm initialised on the named host.
 
 ## Release notes
 
