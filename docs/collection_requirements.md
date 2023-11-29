@@ -2,9 +2,17 @@
 
 This collection uses the following community collections:
 
+- ansible.posix
 - community.docker
+- community.sops
+- devsec.hardening
 
 This collection uses the following roles:
 
+- artis3n.tailscale
+- cchurch.admin-users
 - geerlingguy.docker
+- geerlingguy.mysql
 - geerlingguy.pip
+- linkorb.shipyard
+- ypsman.ipv6_disable
