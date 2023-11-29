@@ -15,4 +15,5 @@ This collection uses the following roles:
 - geerlingguy.mysql
 - geerlingguy.pip
 - linkorb.shipyard
+- linux-system-roles.timesync
 - ypsman.ipv6_disable

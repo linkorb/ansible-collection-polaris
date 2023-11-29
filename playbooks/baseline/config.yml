@@ -14,3 +14,19 @@
           - name: jsondiff
     - name: "IPv6 is disabled"
       role: ypsman.ipv6_disable
+    - name: "Time is Synchronised"
+      role: linux-system-roles.timesync
+      vars:
+        timesync_ntp_servers:
+          - hostname: 0.ubuntu.pool.ntp.org
+            pool: true
+            iburst: true
+          - hostname: 1.ubuntu.pool.ntp.org
+            pool: true
+            iburst: true
+          - hostname: 2.ubuntu.pool.ntp.org
+            pool: true
+            iburst: true
+          - hostname: 3.ubuntu.pool.ntp.org
+            pool: true
+            iburst: true
