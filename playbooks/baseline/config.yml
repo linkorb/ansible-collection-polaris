@@ -5,10 +5,12 @@
     - polaris.layer.baseline
     - polaris.layer.baseline.config
   roles:
-    - role: geerlingguy.pip
+    - name: "Pip Packages"
+      role: geerlingguy.pip
       vars:
         pip_install_packages:
           - name: docker  # docker python sdk (required by docker / swarm module)
             version: ">6.0.1,<7.0.0"
           - name: jsondiff
-    - role: ypsman.ipv6_disable
+    - name: "IPv6 is disabled"
+      role: ypsman.ipv6_disable
