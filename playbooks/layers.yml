@@ -1,4 +1,6 @@
 # Common layer
+- name: Polaris variables validation
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.validate
 - name: Hosts have standard configuration
   ansible.builtin.import_playbook: linkorb.polaris.baseline.config
 - name: Hosts have useful packages
