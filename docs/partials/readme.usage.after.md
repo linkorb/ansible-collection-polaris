@@ -10,15 +10,16 @@ When importing a playbook from the Polaris collection you need to pass along as 
       admins_active: # create users
         - username: alice
           fullname: Alice
+          pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBZl3lQTRGhD5mdGgFEVuX+CAnTMz9MuY+f4vE2cqk9G alice@host
       admins_removed: # remove users
         - bob
          
       docker_users: # Sudo-less docker usage
         - alice
          
--     #docker_registry_login_registry: https://index.docker.io/v1/
-      #docker_registry_login_username: alice
-      #docker_registry_login_password: secret
+-     #docker_registry: https://ghcr.io/
+      #docker_registry_login: alice
+      #docker_registry_pat: secret
 
       #tailscale_authkey: secret
       #tailscale_args:

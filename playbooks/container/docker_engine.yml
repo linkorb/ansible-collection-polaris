@@ -19,7 +19,7 @@
         append: true
         groups: docker
       become: true
-      with_items: '{{ polaris_docker_users }}'
+      with_items: '{{ polaris.docker_users }}'
     - name: Install and enable juicedata/juicefs volume plugin
       community.docker.docker_plugin:
         plugin_name: juicedata/juicefs
@@ -35,9 +35,9 @@
   tasks:
     - name: Login to the Docker Container Registry
       community.general.docker_login:
-        registry: "{{ polaris.docker_registry_login_registry }}"
-        username: "{{ polaris.docker_registry_login_username }}"
-        password: "{{ polaris.docker_registry_login_pat }}"
+        registry: "{{ polaris.docker_registry|default('https://ghcr.io/') }}"
+        username: "{{ polaris.docker_registry_username }}"
+        password: "{{ polaris.docker_registry_pat }}"
       become: true
         # reauthorize: true
 

@@ -16,6 +16,12 @@ properties:
           type: string
         fullname:
           type: string
+        pubkey:
+          type: string
+          description: >
+            The public key to associate with the given user. This value can be a string containing the content of
+            the user's public key, a string containing a URL to a list of keys (e.g https://github.com/username.keys),
+            or a list of multiple strings containing either public key content or URLs
 
   admins_removed:
     type: array
@@ -32,15 +38,15 @@ properties:
     items:
       type: string
 
-  docker_registry_login_username:
+  docker_registry_username:
     type: string
 
-  docker_registry_login_password:
+  docker_registry_pat:
     type: string
 
-  docker_registry_login_registry:
+  docker_registry:
     type: string
-    default: https://index.docker.io/v1/
+    default: https://ghcr.io/
 
 
   tailscale_authkey:
