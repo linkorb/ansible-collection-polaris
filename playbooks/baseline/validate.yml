@@ -3,7 +3,7 @@
   become: true
   tags:
     - polaris.layer.baseline
-    - polaris.layer.baseline.config
+    - polaris.layer.baseline.validate
   tasks:
   - name: load polaris variables validation schema
     ansible.builtin.set_fact:
