@@ -11,6 +11,8 @@
   ansible.builtin.import_playbook: linkorb.polaris.baseline.hardening
 - name: Hosts are JuiceFS clients
   ansible.builtin.import_playbook: linkorb.polaris.baseline.juicefs_client
+- name: Hosts export metrics to Prometheus
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.prometheus_node_exporter
 
 
 # Swarm Layer

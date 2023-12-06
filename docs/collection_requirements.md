@@ -6,6 +6,7 @@ This collection uses the following community collections:
 - community.docker
 - community.sops
 - devsec.hardening
+- prometheus.prometheus
 
 This collection uses the following roles:
 
