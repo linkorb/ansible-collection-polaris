@@ -22,8 +22,9 @@
       with_items: '{{ polaris.docker_users }}'
     - name: Install and enable juicedata/juicefs volume plugin
       community.docker.docker_plugin:
-        plugin_name: juicedata/juicefs
+        plugin_name: "juicedata/juicefs:1.1.1"
         state: enable
+        alias: juicefs
       become: true
 
 - name: Docker registry login
