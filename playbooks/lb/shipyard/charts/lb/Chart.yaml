@@ -1,0 +1,10 @@
+name: lb
+version: 1.0.0
+description: Traefik ingress
+keywords:
+  - shipyard
+  - traefik
+apiVersion: v2
+maintainers:
+  - name: LinkORB Engineering
+    url: https://engineering.linkorb.com

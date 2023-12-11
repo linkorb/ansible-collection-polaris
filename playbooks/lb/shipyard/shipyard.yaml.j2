@@ -1,0 +1,6 @@
+stacks:
+  - name: lb
+    chart: lb
+    host: {{ inventory_hostname }}
+    values: lb/values.yaml
+    tag: lb
