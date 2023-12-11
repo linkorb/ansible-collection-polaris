@@ -1,7 +1,10 @@
 type: object
 description: JSONSchema for collection variables
 additionalProperties: false
-required: ['docker_registry_username', 'docker_registry_pat', 'tailscale_authkey']
+required:
+  - docker_registry_username
+  - docker_registry_pat
+  - tailscale_authkey
 
 properties:
   admins_active:
@@ -79,3 +82,38 @@ properties:
     description: >
       Pass any additional command-line arguments to tailscale up.
       Only tailscale up arguments can be passed in.
+      
+
+  traefik_tls_files:
+    type: array
+    description: SOPS encrypted certificate and keyfile to inject into traefik for TLS offloading
+    default: []
+    items:
+      type: object
+      additionalProperties: false
+      required: ['certFile', 'keyFile', 'domain']
+      properties:
+        certFile:
+          type: string
+          description: SOPS encrypted certificate file
+        keyFile:
+          description: SOPS encrypted key file
+          type: string
+        domain:
+          type: string
+          description: >
+            Domain name of the given certificate/key pair, for documentation and generation of filename on deployment
+            host. You can set subject alternative names in your services using traefik labels.
+            "traefik.http.routers.{{ Stack.name }}.tls.domains.sans=...,..."
+
+  traefik_log_level:
+    type: string
+    description: Traefik configured log level, verbosity (default ERROR)
+    default: ERROR
+    enum:
+      - DEBUG
+      - INFO
+      - WARN
+      - ERROR
+      - FATAL
+      - PANIC

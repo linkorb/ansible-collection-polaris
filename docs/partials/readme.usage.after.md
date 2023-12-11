@@ -24,6 +24,12 @@ When importing a playbook from the Polaris collection you need to pass along as 
 
       tailscale_authkey: secret
       #tailscale_args:
+
+      #traefik_tls_files:
+      #  - certFile: /path/to/sops/encrypted/cert
+      #    keyFile: /path/to/sops/encrypted/key
+      #    domain: example.com
+      #traefik_log_level: DEBUG
 ```
 
 Refer to [the schema](./variables.schema.yaml) for further details.
