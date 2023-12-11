@@ -1,0 +1,39 @@
+entryPoints:
+  web:
+    address: ":80"
+{% if tls_files|length %}
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+{% endif %}
+
+  websecure:
+    address: ":443"
+
+accessLog:
+  # TODO logrotation
+  filePath: /var/log/traefik/access.log
+
+providers:
+  docker:
+    # XXX worth securing in the future following this guide
+    # https://medium.com/@containeroo/traefik-2-0-paranoid-about-mounting-var-run-docker-sock-22da9cb3e78c
+    endpoint: "unix:///var/run/docker.sock"
+    swarmMode: true
+
+    # require each container to have the "traefik.enabled=true" label
+    exposedbydefault: false
+
+  file:
+    filename: /etc/traefik/dynamic-config.yaml
+    watch: true
+
+
+#api:
+# # TODO need to find a way to secure dashboard endpoint
+# dashboard: true
+
+log:
+  level: {{ polaris.traefik_log_level | default('ERROR') }}
