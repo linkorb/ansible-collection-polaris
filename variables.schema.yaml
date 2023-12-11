@@ -1,7 +1,7 @@
 type: object
 description: JSONSchema for collection variables
 additionalProperties: false
-required: ['docker_registry_username', 'docker_registry_pat']
+required: ['docker_registry_username', 'docker_registry_pat', 'tailscale_authkey']
 
 properties:
   admins_active:
