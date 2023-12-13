@@ -1,0 +1,11 @@
+- name: Logging - containers
+  hosts: polaris_hosts
+  tags:
+    - polaris.logging
+    - polaris.logging.containers
+  tasks:
+    - name: Setup Loki and Promtail containers
+      import_role:
+        name: linkorb.shipyard
+      vars:
+        shipyard_tag: logging
