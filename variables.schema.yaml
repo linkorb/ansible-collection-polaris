@@ -49,6 +49,26 @@ properties:
     type: string
     default: https://ghcr.io/
 
+  docker_secrets_for_shipyard_stacks:
+    type: list
+    description: |-
+      List of Docker Secrets needed by Shipyard Stacks running on a Docker Swarm.
+      There should be a secret for each secret declared in a shipyard stack's
+      docker-compose.yml.  Though there may be many shipyard stacks, there is
+      only one docker swarm and accordingly one set of secrets.
+    default: []
+    items:
+      type: object
+      additionalProperties: false
+      required: ['name','data']
+      properties:
+        name:
+          type: string
+          description: The name of a docker secret.
+        data:
+          type: string
+          description: The secret information.
+
 
   tailscale_authkey:
     type: string

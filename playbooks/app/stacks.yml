@@ -7,3 +7,4 @@
     - role: linkorb.shipyard
       vars:
         shipyard_tag: app
+        shipyard_stacks_docker_secrets: '{{ polaris.docker_secrets_for_shipyard_stacks }}'
