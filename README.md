@@ -1,99 +1,65 @@
-# Polaris Collection for Ansible
-<!-- Add CI and code coverage badges here. Samples included below. -->
-[![CI](https://github.com/linkorb/ansible-collection-polaris/workflows/CI/badge.svg?event=push)](https://github.com/linkorb/ansible-collection-polaris/actions) [![Codecov](https://img.shields.io/codecov/c/github/linkorb/ansible-collection-polaris)](https://codecov.io/gh/linkorb/ansible-collection-polaris)
+<!-- Managed by https://github.com/linkorb/repo-ansible. Manual changes will be overwritten. -->
+ansible-collection-polaris
+============
 
-<!-- Describe the collection and why a user would want to use it. What does the collection do? -->
 
-## Our mission
 
-<!-- Put your collection project's mission statement in here. -->
 
-## Contributing to this collection
 
-<!--Describe how the community can contribute to your collection. At a minimum, fill up and include the CONTRIBUTING.md file containing how and where users can create issues to report problems or request features for this collection. List contribution requirements, including preferred workflows and necessary testing, so you can benefit from community PRs. If you are following general Ansible contributor guidelines, you can link to - [Ansible Community Guide](https://docs.ansible.com/ansible/devel/community/index.html). List the current maintainers (contributors with write or higher access to the repository). The following can be included:-->
 
-The content of this collection is made by people like you, a community of individuals collaborating on making the world better through developing automation software.
-
-We are actively accepting new contributors and all types of contributions are very welcome.
-
-Don't know how to start? Refer to the [Ansible community guide](https://docs.ansible.com/ansible/devel/community/index.html)!
-
-Want to submit code changes? Take a look at the [Quick-start development guide](https://docs.ansible.com/ansible/devel/community/create_pr_quick_start.html).
-
-We also use the following guidelines:
-
-* [Collection review checklist](https://docs.ansible.com/ansible/devel/community/collection_contributors/collection_reviewing.html)
-* [Ansible development guide](https://docs.ansible.com/ansible/devel/dev_guide/index.html)
-* [Ansible collection development guide](https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#contributing-to-collections)
-
-## Tested with Ansible
-
-<!-- List the versions of Ansible the collection has been tested with. Must match what is in galaxy.yml. -->
-
-## External requirements
-
-<!-- List any external resources the collection depends on, for example minimum versions of an OS, libraries, or utilities. Do not list other Ansible collections here. -->
-
-## Included content
-
-<!-- Galaxy will eventually list the module docs within the UI, but until that is ready, you may need to either describe your plugins etc here, or point to an external docsite to cover that information. -->
-
-## Using this collection
-
-<!--Include some quick examples that cover the most common use cases for your collection content. It can include the following examples of installation and upgrade: -->
-
-### Installing the Collection from Ansible Galaxy
+## Usage
 
 Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
-```bash
+
+```shell
 ansible-galaxy collection install linkorb.polaris
 ```
 
 You can also include it in a `requirements.yml` file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
+
 ```yaml
 ---
 collections:
   - name: linkorb.polaris
 ```
+### Variables
 
-Note that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the `ansible` package. To upgrade the collection to the latest available version, run the following command:
-```bash
-ansible-galaxy collection install linkorb.polaris --upgrade
+When importing a playbook from the Polaris collection you need to pass along as a variable the
+`polaris` dictionary, which can have the following value properties set:
+
+```yaml
+- ansible.builtin.import_playbook: linkorb.polaris.layers
+  vars:
+    polaris:
+      admins_active: # create users
+        - username: alice
+          fullname: Alice
+          pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBZl3lQTRGhD5mdGgFEVuX+CAnTMz9MuY+f4vE2cqk9G alice@host
+      admins_removed: # remove users
+        - bob
+         
+      docker_users: # Sudo-less docker usage
+        - alice
+         
+-     #docker_registry: https://ghcr.io/
+      #docker_registry_login: alice
+      #docker_registry_pat: secret
+
+      #tailscale_authkey: secret
+      #tailscale_args:
 ```
 
-You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version `0.1.0`:
+Refer to [the schema](./variables.schema.yaml) for further details.
 
-```bash
-ansible-galaxy collection install linkorb.polaris:==0.1.0
-```
+## Contributing
 
-See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
+We welcome contributions to make this repository even better. Whether it's fixing a bug, adding a feature, or improving documentation, your help is highly appreciated. To get started, fork this repository then clone your fork.
 
-### Organise your Inventory
+Be sure to familiarize yourself with LinkORB's [Contribution Guidelines](/CONTRIBUTING.md) for our standards around commits, branches, and pull requests, as well as our [code of conduct](/CODE_OF_CONDUCT.md) before submitting any changes.
 
-```ini
-[polaris_hosts]
-the-monitor
-the-swarm-manager
-swarm-node-1
-swarm-node-2
-swarm-node-3
+If you are unable to implement changes you like yourself, don't hesitate to open a new issue report so that we or others may take care of it.
+## Brought to you by the LinkORB Engineering team
 
-[polaris_primary_swarm_managers]
-the-swarm-manager
-
-[polaris_swarm_nodes]
-swarm-node-1 join_swarm_initialised_by=the-swarm-manager
-swarm-node-2 join_swarm_initialised_by=the-swarm-manager
-swarm-node-3 join_swarm_initialised_by=the-swarm-manager
-```
-
-Organise your Inventory into a group named "`polaris_hosts`".
-
-Place hosts that will be manager Docker Swarm nodes into a group named "`polaris_primary_swarm_managers`".  A Docker Swarm will be initialised on each host in this group.
-
-Place hosts that will be Docker Swarm nodes into a group named "`polaris_swarm_nodes`".  Provide the host var named "`join_swarm_initialised_by`" for each host in this group.  The node will join the swarm initialised on the named host.
-
-## Release notes
-
-See the [changelog](https://github.com/linkorb/ansible-collection-polaris/tree/main/CHANGELOG.rst).
+<img src="http://www.linkorb.com/d/meta/tier1/images/linkorbengineering-logo.png" width="200px" /><br />
+Check out our other projects at [linkorb.com/engineering](http://www.linkorb.com/engineering).
+By the way, we're hiring!
