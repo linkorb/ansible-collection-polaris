@@ -1,6 +1,5 @@
 stacks:
   - name: lb
-    chart: lb
+    chart: traefik
     host: {{ inventory_hostname }}
-    values: lb/values.yaml
     tag: lb
