@@ -58,3 +58,4 @@
         shipyard_tag: lb
         shipyard_filename: "{{ playbook_dir }}/shipyard/shipyard.yaml.j2"
         shipyard_charts_path: "{{ polaris.shipyard_charts_path }}"
+        shipyard_stacks_path: "{{ polaris.shipyard_stacks_path }}"

@@ -6,6 +6,7 @@ required:
   - docker_registry_pat
   - tailscale_authkey
   - shipyard_charts_path
+  - shipyard_stacks_path
 
 properties:
   admins_active:
@@ -105,3 +106,9 @@ properties:
     description: >
       Path to your project's shipyard charts. Among the charts defined, your project should have a chart for traefik,
       as the playbook depends on it for the docker swarm ingress/loadbalancer layer.
+
+  shipyard_stacks_path:
+    type: string
+    description: >
+      Path to your project's shipyard stacks directory. This directory can contain overrides for the default values of
+      a specific chart, in either plaintext or SOPS encrypted variables.

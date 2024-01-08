@@ -32,6 +32,7 @@ When importing a playbook from the Polaris collection you need to pass along as 
       #traefik_log_level: DEBUG
 
       shipyard_charts_path: "/path/to/shipyard/charts"
+      shipyard_stacks_path: "/path/to/shipyard/stacks"
 ```
 
 Refer to [the schema](./variables.schema.yaml) for further details.
