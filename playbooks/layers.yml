@@ -62,6 +62,8 @@
 # logging-layer
 # control: deploy loki as docker stack (shipyard)
 # all: setup promtail reporting to loki (optional, fluentd, fluentbit)
+- name: Hosts are running logging stacks
+  ansible.builtin.import_playbook: linkorb.polaris.logging.containers
 
 #==========
 # database-layer:
