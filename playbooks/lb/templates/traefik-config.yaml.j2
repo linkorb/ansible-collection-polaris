@@ -31,9 +31,8 @@ providers:
     watch: true
 
 
-#api:
-# # TODO need to find a way to secure dashboard endpoint
-# dashboard: true
+api:
+ dashboard: true
 
 log:
   level: {{ polaris.traefik_log_level | default('ERROR') }}
