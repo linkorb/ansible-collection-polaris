@@ -82,7 +82,9 @@ properties:
     description: >
       Pass any additional command-line arguments to tailscale up.
       Only tailscale up arguments can be passed in.
-      
+    examples: [
+      '--login-server http://swarm-manager:18080'
+    ]
 
   traefik_tls_files:
     type: array
