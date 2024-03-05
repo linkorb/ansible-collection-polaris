@@ -10,5 +10,3 @@
       vars:
         tailscale_args: "{{ polaris.tailscale_args|default('') }}"
         tailscale_authkey: "{{ polaris.tailscale_authkey }}"
-
-

@@ -1,6 +1,9 @@
 - name: Docker engine installation
   hosts: polaris_hosts
   become: true
+  vars:
+    docker_daemon_options:
+      ip: "{{ ansible_facts.tailscale0.ipv4.address }}"
   tags:
     - polaris.layer.container
     - polaris.layer.container.docker_engine

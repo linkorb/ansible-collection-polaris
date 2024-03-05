@@ -15,6 +15,13 @@
   ansible.builtin.import_playbook: linkorb.polaris.baseline.prometheus_node_exporter
 
 
+# Overlay layer
+- name: Hosts are Headscale nodes
+  ansible.builtin.import_playbook: linkorb.polaris.overlay.headscale
+- name: Hosts are Tailscale clients
+  ansible.builtin.import_playbook: linkorb.polaris.overlay.tailscale_client
+
+
 # Swarm Layer
 - name: Hosts are Docker Engines
   ansible.builtin.import_playbook: linkorb.polaris.container.docker_engine
@@ -25,13 +32,6 @@
 # Kubernetes layer
 #- name: Hosts are nodes in k8s clusters
 #  ansible.builtin.import_playbook: linkorb.polaris.container.kubernetes
-
-
-# Overlay layer
-- name: Hosts are Headscale nodes
-  ansible.builtin.import_playbook: linkorb.polaris.overlay.headscale
-- name: Hosts are Tailscale clients
-  ansible.builtin.import_playbook: linkorb.polaris.overlay.tailscale_client
 
 - name: Hosts are running Traefik ingress
   ansible.builtin.import_playbook: linkorb.polaris.lb.traefik
