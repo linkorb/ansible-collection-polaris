@@ -4,7 +4,6 @@ additionalProperties: false
 required:
   - docker_registry_username
   - docker_registry_pat
-  - tailscale_authkey
 
 properties:
   admins_active:
@@ -53,7 +52,7 @@ properties:
     default: https://ghcr.io/
 
   docker_secrets_for_shipyard_stacks:
-    type: list
+    type: array
     description: |-
       List of Docker Secrets needed by Shipyard Stacks running on a Docker Swarm.
       There should be a secret for each secret declared in a shipyard stack's
@@ -72,10 +71,6 @@ properties:
           type: string
           description: The secret information.
 
-
-  tailscale_authkey:
-    type: string
-    description: A Tailscale Node Authorization auth key.
 
   tailscale_args:
     type: string
