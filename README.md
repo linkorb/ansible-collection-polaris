@@ -46,7 +46,6 @@ When importing a playbook from the Polaris collection you need to pass along as 
       docker_registry_login: alice
       docker_registry_pat: secret
 
-      tailscale_authkey: secret
       #tailscale_args:
 
       #traefik_tls_files:
