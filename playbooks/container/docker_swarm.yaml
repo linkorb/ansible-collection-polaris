@@ -10,7 +10,7 @@
   - name: Initialise a Swarm on this Host
     community.docker.docker_swarm:
       state: present
-      #advertise_addr: "{{ polaris_docker_swarm_advertise_addr }}" # tailnet ip
+      advertise_addr: "{{ polaris.docker_swarm_advertise_address | default(omit) }}"
     register: swarm_initialisation_info
   - name: Peek at swarm_initialisation_info
     debug:
@@ -42,6 +42,7 @@
     community.docker.docker_swarm:
       state: join
       join_token: "{{ target_swarm_facts.swarm_initialisation_info.swarm_facts.JoinTokens.Manager }}"
+      advertise_addr: "{{ polaris.docker_swarm_advertise_address | default(omit) }}"
       remote_addrs:
       - "{{ target_swarm_facts.default_ipv4.address | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
 
@@ -66,5 +67,6 @@
     community.docker.docker_swarm:
       state: join
       join_token: "{{ target_swarm_facts.swarm_initialisation_info.swarm_facts.JoinTokens.Worker }}"
+      advertise_addr: "{{ polaris.docker_swarm_advertise_address | default(omit) }}"
       remote_addrs:
       - "{{ target_swarm_facts.default_ipv4.address | default(target_swarm_facts.all_ipv4_addresses[0]) }}"

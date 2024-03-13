@@ -41,6 +41,12 @@ properties:
     items:
       type: string
 
+  docker_swarm_advertise_address:
+    type: string
+    description: >
+      Externally reachable address advertised to other swarm nodes.
+      See https://docs.ansible.com/ansible/latest/collections/community/docker/docker_swarm_module.html#parameter-advertise_addr
+
   docker_registry_username:
     type: string
 
