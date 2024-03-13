@@ -41,4 +41,3 @@
         password: "{{ polaris.docker_registry_pat }}"
       become: true
         # reauthorize: true
-
