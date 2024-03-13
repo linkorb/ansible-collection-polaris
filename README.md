@@ -42,7 +42,7 @@ When importing a playbook from the Polaris collection you need to pass along as 
       #docker_users: # Sudo-less docker usage
       #  - alice
          
--     #docker_registry: https://ghcr.io/
+      docker_swarm_advertise_address: secret
       docker_registry_login: alice
       docker_registry_pat: secret
 
