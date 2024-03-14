@@ -65,6 +65,9 @@
 - name: Hosts are running logging stacks
   ansible.builtin.import_playbook: linkorb.polaris.logging.containers
 
+- name: Hosts are running monitoring stacks
+  ansible.builtin.import_playbook: linkorb.polaris.monitoring.containers
+
 #==========
 # database-layer:
 # service: deploy container-based mysql / mariadb / postgres clusters
@@ -76,7 +79,6 @@
 # service: nfs servers (if needed? Maybe juicefs covers these use-cases)
 # monitoring-layer:
 # all: setup prometheus node exporter available on overlay ip
-# control: deploy prometheus + alert manager
 # control: goalert + xping
 # control: deploy grafana
 # control: deploy jaeger

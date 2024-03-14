@@ -1,0 +1,11 @@
+- name: Monitoring - containers
+  hosts: polaris_hosts
+  tags:
+    - polaris.monitoring
+    - polaris.monitoring.containers
+  tasks:
+    - name: Setup prometheus and alertmanager containers
+      import_role:
+        name: linkorb.shipyard
+      vars:
+        shipyard_tag: monitoring
