@@ -14,8 +14,8 @@
           - fuse
           - gnupg
           - lsb-release
+          - ngrep
+          - nmap
           - software-properties-common
           - vim
-          - nmap
-          - ngrep
         state: present
