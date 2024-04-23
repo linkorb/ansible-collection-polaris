@@ -88,3 +88,5 @@
 # … something for juicefs / object storage buckets
 # firewall-layer
 # Generated multi-host iptables-based rules, based on platform + app rules
+- name: Hosts are firewalled
+  ansible.builtin.import_playbook: linkorb.polaris.firewall.iptables_docker_swarm

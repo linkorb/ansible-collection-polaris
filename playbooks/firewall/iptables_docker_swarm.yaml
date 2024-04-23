@@ -1,0 +1,32 @@
+- name: Set iptables rules that don't intefere with Docker's iptables usage
+  hosts: polaris_hosts
+  tags:
+    - polaris.firewall
+    - polaris.firewall.iptables
+  tasks:
+
+  - name: The iptables-persistent Apt package is installed
+    become: true
+    ansible.builtin.apt:
+      name: iptables-persistent
+      state: present
+
+  - name: v4 iptables rules exist
+    become: true
+    ansible.builtin.template:
+      src: etc-iptables-filter.v4
+      dest: /etc/iptables/filter.v4
+      owner: root
+      group: adm
+      mode: '0644'
+
+  - name: iptables filter table is in a known state
+    become: true
+    community.general.iptables_state:
+      ip_version: ipv4
+      table: filter
+      state: restored
+      noflush: true
+      path: /etc/iptables/filter.v4
+    async: '{{ ansible_timeout }}'
+    poll: 0
