@@ -43,7 +43,7 @@
     community.docker.docker_swarm:
       state: join
       join_token: "{{ target_swarm_facts.swarm_initialisation_info.swarm_facts.JoinTokens.Manager }}"
-      advertise_addr: "{{ polaris.docker_swarm_advertise_address | default(omit) }}"
+      advertise_addr: "{{ private_ip_address | default(omit) }}"
       listen_addr: "{{ private_ip_address | default(omit) }}"
       remote_addrs:
       - "{{ polaris.docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
@@ -69,7 +69,7 @@
     community.docker.docker_swarm:
       state: join
       join_token: "{{ target_swarm_facts.swarm_initialisation_info.swarm_facts.JoinTokens.Worker }}"
-      advertise_addr: "{{ polaris.docker_swarm_advertise_address | default(omit) }}"
+      advertise_addr: "{{ private_ip_address | default(omit) }}"
       listen_addr: "{{ private_ip_address | default(omit) }}"
       remote_addrs:
       - "{{ polaris.docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
