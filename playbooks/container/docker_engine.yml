@@ -4,8 +4,12 @@
   tags:
     - polaris.layer.container
     - polaris.layer.container.docker_engine
-  roles:
-    - geerlingguy.docker
+  tasks:
+    - name: Host has dependencies of ansible modules
+      ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml
+    - name: Docker is installed
+      ansible.builtin.import_role:
+        name: geerlingguy.docker
 
 - name: Docker config
   hosts: polaris_hosts
