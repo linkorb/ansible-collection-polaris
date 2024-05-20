@@ -1,30 +1,36 @@
-- name: Baseline - configuration
+- name: Hosts are configured in the standard manner
   hosts: polaris_hosts
   become: true
   tags:
-    - polaris.layer.baseline
-    - polaris.layer.baseline.config
-  roles:
-    - name: "Pip Packages"
-      role: geerlingguy.pip
-      vars:
-        pip_install_packages:
-          - name: jsondiff
-    - name: "IPv6 is disabled"
-      role: ypsman.ipv6_disable
-    - name: "Time is Synchronised"
-      role: linux-system-roles.timesync
-      vars:
-        timesync_ntp_servers:
-          - hostname: 0.ubuntu.pool.ntp.org
-            pool: true
-            iburst: true
-          - hostname: 1.ubuntu.pool.ntp.org
-            pool: true
-            iburst: true
-          - hostname: 2.ubuntu.pool.ntp.org
-            pool: true
-            iburst: true
-          - hostname: 3.ubuntu.pool.ntp.org
-            pool: true
-            iburst: true
+  - polaris.layer.baseline
+  - polaris.layer.baseline.config
+  tasks:
+
+  - name: Python packages needed by Ansible are installed by Pip
+    ansible.builtin.import_role:
+      name: geerlingguy.pip
+    vars:
+      pip_install_packages:
+      - name: jsondiff
+
+  - name: IPv6 is disabled
+    ansible.builtin.import_role:
+      name: ypsman.ipv6_disable
+
+  - name: Time is Synchronised
+    ansible.builtin.import_role:
+      name: linux-system-roles.timesync
+    vars:
+      timesync_ntp_servers:
+      - hostname: 0.ubuntu.pool.ntp.org
+        pool: true
+        iburst: true
+      - hostname: 1.ubuntu.pool.ntp.org
+        pool: true
+        iburst: true
+      - hostname: 2.ubuntu.pool.ntp.org
+        pool: true
+        iburst: true
+      - hostname: 3.ubuntu.pool.ntp.org
+        pool: true
+        iburst: true
