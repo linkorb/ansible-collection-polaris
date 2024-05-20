@@ -6,6 +6,17 @@
   - polaris.layer.baseline.config
   tasks:
 
+  - name: The host name is correct
+    ansible.builtin.hostname:
+      name: '{{ inventory_hostname }}'
+
+  - name: The host name is present in /etc/hosts
+    ansible.builtin.lineinfile:
+      dest: /etc/hosts
+      regexp: '^127\.0\.0\.1[ \t]+localhost'
+      line: '127.0.0.1 localhost {{ inventory_hostname }}'
+      state: present
+
   - name: Python packages needed by Ansible are installed by Pip
     ansible.builtin.import_role:
       name: geerlingguy.pip
