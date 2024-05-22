@@ -47,6 +47,15 @@ properties:
       Externally reachable address advertised to other swarm nodes.
       See https://docs.ansible.com/ansible/latest/collections/community/docker/docker_swarm_module.html#parameter-advertise_addr
 
+  docker_swarm_default_addr_pool:
+    type: array
+    default: [ 10.135.0.0/16 ]
+    description: >
+      List of strings, each of which is a CIDR range of IP addresses which Docker will assign to containers using overlay networks.
+      This is useful to ensure reachability of swarm services by external clients that have addresses in the 10/8 usually allocated to overlay networks.
+      See https://docs.ansible.com/ansible/latest/collections/community/docker/docker_swarm_module.html#parameter-default_addr_pool
+      and https://docs.docker.com/reference/cli/docker/swarm/init/#default-addr-pool
+
   docker_registry_username:
     type: string
 
