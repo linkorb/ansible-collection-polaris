@@ -11,11 +11,18 @@
       name: iptables-persistent
       state: present
 
+  - name: v4 iptables rules will be loaded at boot with --noflush
+    ansible.builtin.lineinfile:
+      dest: /etc/default/netfilter-persistent
+      regexp: '^IPTABLES_RESTORE_NOFLUSH=yes'
+      line: 'IPTABLES_RESTORE_NOFLUSH=yes'
+      state: present
+
   - name: v4 iptables rules exist
     become: true
     ansible.builtin.template:
       src: etc-iptables-filter.v4
-      dest: /etc/iptables/filter.v4
+      dest: /etc/iptables/rules.v4
       owner: root
       group: adm
       mode: '0644'
@@ -27,6 +34,6 @@
       table: filter
       state: restored
       noflush: true
-      path: /etc/iptables/filter.v4
+      path: /etc/iptables/rules.v4
     async: '{{ ansible_timeout }}'
     poll: 0
