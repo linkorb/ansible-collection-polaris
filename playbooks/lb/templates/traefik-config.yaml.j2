@@ -1,19 +1,7 @@
 entryPoints:
-  web:
-    address: ":80"
-{% if tls_files|length %}
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-{% endif %}
-
-  websecure:
-    address: ":443"
-
-  headscale:
-    address: ":18080"
+{% for id, entrypoint in (polaris.traefik_entrypoints | default({"websecure":{"address":":443"}})).items() %}
+  {{ id }}: {{ entrypoint }}
+{% endfor %}
 
 accessLog:
   # TODO logrotation

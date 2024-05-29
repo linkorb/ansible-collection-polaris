@@ -96,6 +96,19 @@ properties:
       '--login-server http://swarm-manager:18080'
     ]
 
+  traefik_entrypoints:
+    type: object
+    description: >
+      Entrypoints required by Traefik for its static configuration.
+      Please see for details: https://doc.traefik.io/traefik/routing/entrypoints/
+    additionalProperties: true
+    examples:
+      - http:
+          address: ':443'
+    default:
+      websecure:
+        address: ':443'
+
   traefik_tls_files:
     type: array
     description: SOPS encrypted certificate and keyfile to inject into traefik for TLS offloading
