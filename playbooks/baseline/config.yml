@@ -24,6 +24,13 @@
       pip_install_packages:
       - name: jsondiff
 
+  - name: IPv6 is disabled at kernel boot
+    ansible.builtin.lineinfile:
+      path: /etc/default/grub
+      line: 'GRUB_CMDLINE_LINUX="ipv6.disable=1"'
+      regex: '^GRUB_CMDLINE_LINUX="ipv6.disable="'
+    notify: Update Grub
+
   - name: IPv6 is disabled
     ansible.builtin.import_role:
       name: ypsman.ipv6_disable
@@ -45,3 +52,8 @@
       - hostname: 3.ubuntu.pool.ntp.org
         pool: true
         iburst: true
+
+  handlers:
+  - name: Update Grub
+    become: true
+    ansible.builtin.command: update-grub
