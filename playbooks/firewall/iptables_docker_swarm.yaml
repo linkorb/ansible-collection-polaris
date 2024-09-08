@@ -35,5 +35,5 @@
       state: restored
       noflush: true
       path: /etc/iptables/rules.v4
-    async: '{{ ansible_timeout }}'
+    async: '{{ ansible_check_mode | ternary(0, ansible_timeout) }}'
     poll: 0
