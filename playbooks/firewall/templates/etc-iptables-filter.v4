@@ -13,7 +13,11 @@
 -F CLUSTER
 -A CLUSTER -m state --state ESTABLISHED,RELATED -j ACCEPT
 {% for spec in externally_accessible_network_ports | default([]) %}
+{%  if spec.source_ip_addr is defined %}
+-A CLUSTER -m state --state NEW -m {{ spec.proto }} -p {{ spec.proto }} -s {{ spec.source_ip_addr }} --dport {{ spec.port }} -j ACCEPT
+{%  else %}
 -A CLUSTER -m state --state NEW -m {{ spec.proto }} -p {{ spec.proto }} --dport {{ spec.port }} -j ACCEPT
+{%  endif %}
 {% endfor %}
 {% if log_dropped_network_traffic | default(false) %}
 -A CLUSTER -j LOG --log-level 6 --log-prefix "CLUSTER:DROP: "
