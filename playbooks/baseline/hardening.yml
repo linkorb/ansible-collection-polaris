@@ -10,4 +10,6 @@
         sysctl_overwrite:
           # Enable IPv4 traffic forwarding (for Docker).
           net.ipv4.ip_forward: 1
+          vm.swappiness: '{% if discourage_swapping | default(false) %}0{% else %}60{% endif %}'
+          vm.overcommit_memory: '{% if discourage_swapping | default(false) %}1{% else %}0{% endif %}'
         ufw_manage_defaults: false
