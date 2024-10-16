@@ -1,0 +1,17 @@
+galaxy_info:
+  role_name: stackmanager
+  author: LinkORB
+  description: Deploy stacks to Docker Swarm
+  company: LinkORB
+  license: MIT
+  min_ansible_version: '2.11'
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - docker
+    - linkorb
+    - stack
+    - swarm
+dependencies: []

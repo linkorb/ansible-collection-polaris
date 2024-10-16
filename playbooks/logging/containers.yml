@@ -6,6 +6,6 @@
   tasks:
     - name: Setup Loki and Promtail containers
       import_role:
-        name: linkorb.shipyard
+        name: stackmanager
       vars:
-        shipyard_tag: logging
+        tagged: logging

@@ -1,9 +1,9 @@
-- name: Shipyard - headscale
+- name: Deploy the Headscale stack
   hosts: polaris_hosts
   tags:
     - polaris.layer.overlay
     - polaris.layer.overlay.headscale
   roles:
-    - role: linkorb.shipyard
+    - role: stackmanager
       vars:
-        shipyard_tag: headscale
+        tagged: headscale

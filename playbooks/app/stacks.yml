@@ -1,10 +1,10 @@
-- name: Shipyard - app stacks
+- name: Deploy app stacks
   hosts: polaris_hosts
   tags:
     - polaris.layer.app
     - polaris.layer.app.stacks
   roles:
-    - role: linkorb.shipyard
+    - role: stackmanager
       vars:
-        shipyard_tag: app
-        shipyard_stacks_docker_secrets: '{{ polaris.docker_secrets_for_shipyard_stacks }}'
+        tagged: app
+        docker_secrets: '{{ polaris_docker_secrets_for_stacks }}'

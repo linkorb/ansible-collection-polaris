@@ -1,0 +1,73 @@
+# These tasks are included once per stack
+
+- name: 'The stack directory for {{ stack.name }} is present on the managed node'
+  become: true
+  ansible.builtin.file:
+    path: '{{ stack.remote_path }}'
+    state: directory
+    mode: '0700'
+
+- name: 'Print directories that will be present in the {{ stack.name }} stack directory'
+  ansible.builtin.debug:
+    msg: 'directory: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
+    verbosity: 1
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when: item.state == 'directory'
+
+- name: 'Directories are present in the {{ stack.name }} stack directory'
+  become: true
+  ansible.builtin.file:
+    path: '{{ stack.remote_path }}/{{ item.path }}'
+    state: directory
+    mode: '{{ item.mode }}'
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when: item.state == 'directory'
+
+- name: 'Print templated files that will be present in the {{ stack.name }} stack directory'
+  become: true
+  ansible.builtin.debug:
+    msg: 'file: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
+    verbosity: 1
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when: item.state == 'file'
+
+- name: 'Templated files are present in the {{ stack.name }} stack directory'
+  become: true
+  ansible.builtin.template:
+    src: '{{ stack.local_path }}/{{ item.path }}'
+    dest: '{{ stack.remote_path }}/{{ item.path }}'
+    mode: u=rw,g=r,o=r
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when: item.state == 'file'
+
+- name: 'Docker volumes for {{ stack.name }} config are pesent in the swarm'
+  become: true
+  community.docker.docker_volume:
+    name: '{{ item.name }}'
+    state: present
+  loop: '{{ stack.config_volumes | default([]) }}'
+
+- name: 'Docker volumes for {{ stack.name }} config are populated with their data'
+  become: true
+  ansible.builtin.shell:
+    cmd: 'tar --directory={{ stack.remote_path }}/{{ item.path }} --create --file=- . | docker run --rm --interactive --volume {{ item.name }}:/data alpine tar --directory=/data --extract --verbose --file=- && touch {{ stack.remote_path }}/{{ item.path }}/.done'
+    creates: '{{ stack.remote_path }}/{{ item.path }}/.done'
+  loop: '{{ stack.config_volumes | default([]) }}'
+
+- name: 'Docker secrets are present'
+  become: true
+  community.docker.docker_secret:
+    name: '{{ item.name }}'
+    data: '{{ item.data | b64encode }}'
+    data_is_b64: true
+    state: present
+  loop: '{{ docker_secrets | default([]) }}'
+
+- name: 'Deploy stack'
+  become: true
+  docker_stack:
+    name: '{{ stack.name }}'
+    state: present
+    with_registry_auth: true
+    compose:
+         - '{{ stack.remote_path }}/docker-compose.yml'

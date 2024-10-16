@@ -5,7 +5,7 @@
     - polaris.lb.traefik
   vars:
     certificates_dir: "/etc/traefik/certificates"
-    tls_files: "{{ polaris.traefik_tls_files|default([]) }}"
+    tls_files: "{{ polaris_traefik_tls_files|default([]) }}"
   tasks:
     - name: Create traefik directories
       ansible.builtin.file:
@@ -53,6 +53,6 @@
 
     - name: Setup traefik container
       include_role:
-        name: linkorb.shipyard
+        name: stackmanager
       vars:
-        shipyard_tag: lb
+        tagged: lb

@@ -7,7 +7,7 @@
     - polaris.
   roles:
     - role: cchurch.admin-users
-      admin_users: "{{ polaris.admins_active }}"
+      admin_users: "{{ polaris_admins_active }}"
 
 - name: python
   hosts: polaris_hosts # use -l to limit your hosts

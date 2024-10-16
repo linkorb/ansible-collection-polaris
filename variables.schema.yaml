@@ -2,11 +2,11 @@ type: object
 description: JSONSchema for collection variables
 additionalProperties: false
 required:
-  - docker_registry_username
-  - docker_registry_pat
+  - polaris_docker_registry_username
+  - polaris_docker_registry_pat
 
 properties:
-  admins_active:
+  polaris_admins_active:
     type: array
     description: List of admin users to create or update
     default: []
@@ -26,7 +26,7 @@ properties:
             the user's public key, a string containing a URL to a list of keys (e.g https://github.com/username.keys),
             or a list of multiple strings containing either public key content or URLs
 
-  admins_removed:
+  polaris_admins_removed:
     type: array
     description: List of usernames to remove
     default: []
@@ -34,20 +34,20 @@ properties:
       type: string
 
 
-  docker_users:
+  polaris_docker_users:
     type: array
     description: List of sudo-less docker users
     default: []
     items:
       type: string
 
-  docker_swarm_advertise_address:
+  polaris_docker_swarm_advertise_address:
     type: string
     description: >
       Externally reachable address advertised to other swarm nodes.
       See https://docs.ansible.com/ansible/latest/collections/community/docker/docker_swarm_module.html#parameter-advertise_addr
 
-  docker_swarm_default_addr_pool:
+  polaris_docker_swarm_default_addr_pool:
     type: array
     default: [ 10.135.0.0/16 ]
     description: >
@@ -56,23 +56,24 @@ properties:
       See https://docs.ansible.com/ansible/latest/collections/community/docker/docker_swarm_module.html#parameter-default_addr_pool
       and https://docs.docker.com/reference/cli/docker/swarm/init/#default-addr-pool
 
-  docker_registry_username:
+  polaris_docker_registry_username:
     type: string
 
-  docker_registry_pat:
+  polaris_docker_registry_pat:
     type: string
 
-  docker_registry:
+  polaris_docker_registry:
     type: string
     default: https://ghcr.io/
 
-  docker_secrets_for_shipyard_stacks:
+  polaris_docker_secrets_for_stacks:
     type: array
     description: |-
-      List of Docker Secrets needed by Shipyard Stacks running on a Docker Swarm.
-      There should be a secret for each secret declared in a shipyard stack's
-      docker-compose.yml.  Though there may be many shipyard stacks, there is
+      List of Docker Secrets needed by Stacks running on a Docker Swarm.
+      There should be a secret for each secret declared in a stack's
+      docker-compose.yml.  Though there may be many stacks, there is
       only one docker swarm and accordingly one set of secrets.
+      This variable replaces docker_secrets_for_shipyard_stacks.
     default: []
     items:
       type: object
@@ -87,7 +88,7 @@ properties:
           description: The secret information.
 
 
-  tailscale_args:
+  polaris_tailscale_args:
     type: string
     description: >
       Pass any additional command-line arguments to tailscale up.
@@ -96,7 +97,7 @@ properties:
       '--login-server http://swarm-manager:18080'
     ]
 
-  traefik_entrypoints:
+  polaris_traefik_entrypoints:
     type: object
     description: >
       Entrypoints required by Traefik for its static configuration.
@@ -109,7 +110,7 @@ properties:
       websecure:
         address: ':443'
 
-  traefik_tls_files:
+  polaris_traefik_tls_files:
     type: array
     description: SOPS encrypted certificate and keyfile to inject into traefik for TLS offloading
     default: []
@@ -131,7 +132,7 @@ properties:
             host. You can set subject alternative names in your services using traefik labels.
             "traefik.http.routers.{{ Stack.name }}.tls.domains.sans=...,..."
 
-  traefik_log_level:
+  polaris_traefik_log_level:
     type: string
     description: Traefik configured log level, verbosity (default ERROR)
     default: ERROR

@@ -9,13 +9,17 @@
     ansible.builtin.set_fact:
       criteria: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/../../variables.schema.yaml') | from_yaml }}"
 
+  - name: select polaris variables
+    ansible.builtin.set_fact:
+      polaris_vars: "{{ vars | dict2items | selectattr('key', 'search', '^polaris_') | items2dict }}"
+
   - name: validate polaris variables
     ansible.builtin.set_fact:
-      config_validity: "{{ vars.polaris|ansible.utils.validate(criteria, engine='ansible.utils.jsonschema', draft='draft7') }}"
+      config_validity: "{{ polaris_vars | ansible.utils.validate(criteria, engine='ansible.utils.jsonschema', draft='draft7') }}"
 
   - when: config_validity[0].message is defined
     name: fail on polaris variables validation error
     ansible.builtin.fail:
       msg: >
-        polaris.{{ config_validity[0].data_path }}: {{ config_validity[0].message }}.
+        {{ config_validity[0].data_path }}: {{ config_validity[0].message }}.
         Please refer to the Polaris variables schema.
