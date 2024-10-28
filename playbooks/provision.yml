@@ -1,19 +1,16 @@
 # Configure users
-
 - name: users
   hosts: polaris_hosts # use -l to limit your hosts
-  become: yes
-  tags:
-    - polaris.
+  gather_facts: false
+  become: true
   roles:
     - role: cchurch.admin-users
       admin_users: "{{ polaris_admins_active }}"
 
 - name: python
   hosts: polaris_hosts # use -l to limit your hosts
+  gather_facts: false
   become: true
-  tags:
-    - python
   tasks:
     - name: install python
       ansible.builtin.apt:
