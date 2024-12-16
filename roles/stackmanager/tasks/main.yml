@@ -7,40 +7,40 @@
 
 - name: 'Read the stack manifest'
   set_fact:
-    manifest: '{{ lookup("template", path_to_manifest) | from_yaml }}'
+    manifest: '{{ (lookup("template", path_to_manifest, errors="ignore") | from_yaml).stacks | default(stacks) | default([]) }}'
 
 - name: 'Initialize a list of selected stacks to deploy'
   set_fact:
-    stacks: []
     selected_stacks: []
+    stacks_to_deploy: []
 
 - name: 'Select stacks to deploy on this host'
   set_fact:
     selected_stacks: '{{ selected_stacks + [item] }}'
-  loop: '{{ manifest.stacks }}'
+  loop: '{{ manifest }}'
   when:
   - item.host == inventory_hostname
   - tagged is not defined or (item.tag is defined and tagged == item.tag)
 
 - name: 'Enrich selected stacks with path info'
   set_fact:
-    stacks: '{{ stacks + [item | combine({"local_path": local_path_to_stacks~item.name, "remote_path": remote_path_to_stacks~item.name})] }}'
+    stacks_to_deploy: '{{ stacks_to_deploy + [item | combine({"local_path": local_path_to_stacks~(item.path|default(item.name)), "remote_path": remote_path_to_stacks~item.name})] }}'
   loop: '{{ selected_stacks }}'
 
-- name: 'Debug: manifest.stacks'
+- name: 'Debug: manifest'
   ansible.builtin.debug:
-    var: manifest.stacks
+    var: manifest
     verbosity: 1
-  when: stacks | length
+  when: stacks_to_deploy | length
 
-- name: 'Debug: stacks (selected and enriched)'
+- name: 'Debug: stacks_to_deploy (selected and enriched)'
   ansible.builtin.debug:
-    var: stacks
-  when: stacks | length
+    var: stacks_to_deploy
+  when: stacks_to_deploy | length
 
 - name: 'Deploy stacks'
   include_tasks: deploy-stack.yml
-  loop: '{{ stacks }}'
+  loop: '{{ stacks_to_deploy }}'
   loop_control:
     label: 'Deploy stack: [{{ stack.name }}]'
     loop_var: stack
