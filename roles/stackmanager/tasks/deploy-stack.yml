@@ -26,19 +26,36 @@
 - name: 'Print templated files that will be present in the {{ stack.name }} stack directory'
   become: true
   ansible.builtin.debug:
-    msg: 'file: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
+    msg: 'file: {{ stack.remote_path }}/{{ item.path | splitext | first }}; mode: {{ item.mode }}'
     verbosity: 1
   with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'file'
+  when: item.state == 'file' and item.path | splitext | last == '.j2'
 
 - name: 'Templated files are present in the {{ stack.name }} stack directory'
   become: true
   ansible.builtin.template:
     src: '{{ stack.local_path }}/{{ item.path }}'
+    dest: '{{ stack.remote_path }}/{{ item.path | splitext | first }}'
+    mode: u=rw,g=r,o=r
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when: item.state == 'file' and item.path | splitext | last == '.j2'
+
+- name: 'Print static files that will be present in the {{ stack.name }} stack directory'
+  become: true
+  ansible.builtin.debug:
+    msg: 'file: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
+    verbosity: 1
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when: item.state == 'file' and item.path | splitext | last != '.j2'
+
+- name: 'Static files are present in the {{ stack.name }} stack directory'
+  become: true
+  ansible.builtin.copy:
+    src: '{{ stack.local_path }}/{{ item.path }}'
     dest: '{{ stack.remote_path }}/{{ item.path }}'
     mode: u=rw,g=r,o=r
   with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'file'
+  when: item.state == 'file' and item.path | splitext | last != '.j2'
 
 - name: 'Docker volumes for {{ stack.name }} config are pesent in the swarm'
   become: true
