@@ -97,19 +97,6 @@ properties:
       '--login-server http://swarm-manager:18080'
     ]
 
-  polaris_traefik_entrypoints:
-    type: object
-    description: >
-      Entrypoints required by Traefik for its static configuration.
-      Please see for details: https://doc.traefik.io/traefik/routing/entrypoints/
-    additionalProperties: true
-    examples:
-      - http:
-          address: ':443'
-    default:
-      websecure:
-        address: ':443'
-
   polaris_traefik_tls_files:
     type: array
     description: SOPS encrypted certificate and keyfile to inject into traefik for TLS offloading
@@ -131,15 +118,3 @@ properties:
             Domain name of the given certificate/key pair, for documentation and generation of filename on deployment
             host. You can set subject alternative names in your services using traefik labels.
             "traefik.http.routers.{{ Stack.name }}.tls.domains.sans=...,..."
-
-  polaris_traefik_log_level:
-    type: string
-    description: Traefik configured log level, verbosity (default ERROR)
-    default: ERROR
-    enum:
-      - DEBUG
-      - INFO
-      - WARN
-      - ERROR
-      - FATAL
-      - PANIC

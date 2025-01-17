@@ -3,9 +3,6 @@
   tags:
     - polaris.lb
     - polaris.lb.traefik
-  vars:
-    certificates_dir: "/etc/traefik/certificates"
-    tls_files: "{{ polaris_traefik_tls_files|default([]) }}"
   tasks:
     - name: Create traefik directories
       ansible.builtin.file:
@@ -13,36 +10,24 @@
         state: directory
       become: true
       loop:
-        - /etc/traefik
-        - "{{ certificates_dir }}"
+        - /etc/traefik/certificates
         - /var/log/traefik
 
-    - when: tls_files|length
+    - when: polaris_traefik_tls_files | default([]) | length
       block:
         - name: Copy TLS cert files
           ansible.builtin.copy:
-            dest: "{{ certificates_dir }}/{{ item.domain }}.cert"
+            dest: "/etc/traefik/certificates/{{ item.domain }}.cert"
             content: "{{ lookup('community.sops.sops', item.certFile, input_type='yaml') }}"
-          loop: "{{ tls_files }}"
+          loop: "{{ polaris_traefik_tls_files }}"
           become: true
 
         - name: Copy TLS key files
           ansible.builtin.copy:
-            dest: "{{ certificates_dir }}/{{ item.domain }}.key"
+            dest: "/etc/traefik/certificates/{{ item.domain }}.key"
             content: "{{ lookup('community.sops.sops', item.keyFile, input_type='yaml') }}"
-          loop: "{{ tls_files }}"
+          loop: "{{ polaris_traefik_tls_files }}"
           become: true
-
-    - name: Generate traefik config files
-      ansible.builtin.template:
-        src: "templates/{{ item.source }}"
-        dest: "/etc/traefik/{{ item.dest }}"
-      become: true
-      loop:
-        - source: traefik-config.yaml.j2
-          dest: config.yaml
-        - source: traefik-dynamic-config.yaml.j2
-          dest: dynamic-config.yaml
 
     - name: Create traefik docker network
       docker_network:
