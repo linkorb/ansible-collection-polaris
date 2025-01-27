@@ -79,3 +79,36 @@
       - "{{ polaris_docker_swarm_default_addr_pool | default('10.135.0.0/16') }}"
       remote_addrs:
       - "{{ polaris_docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
+
+
+- name: Swarm managers are labelled
+  hosts:
+    - polaris_primary_swarm_managers
+    - polaris_secondary_swarm_managers
+  become: true
+  tags:
+    - polaris.container
+    - polaris.container.swarm
+  tasks:
+    - name: "Set labels"
+      community.docker.docker_node:
+        hostname: "{{ inventory_hostname_short }}"
+        labels: "{{ node_labels | default({}) }}"
+        labels_state: replace
+        labels_to_remove: "{{ polaris_docker_swarm_node_labels_to_remove | default([]) }}"
+
+- name: Swarm workers are labelled
+  hosts:
+    - polaris_swarm_nodes
+  become: true
+  tags:
+    - polaris.container
+    - polaris.container.swarm
+  tasks:
+    - name: "Have swarm manager set the labels of node {{ inventory_hostname }}"
+      delegate_to: "{{ join_swarm_initialised_by }}"
+      community.docker.docker_node:
+        hostname: "{{ hostvars[inventory_hostname]['inventory_hostname_short'] }}"
+        labels: "{{ hostvars[inventory_hostname]['node_labels'] | default({}) }}"
+        labels_state: replace
+        labels_to_remove: "{{ polaris_docker_swarm_node_labels_to_remove | default([]) }}"

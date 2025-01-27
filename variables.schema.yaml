@@ -56,6 +56,11 @@ properties:
       See https://docs.ansible.com/ansible/latest/collections/community/docker/docker_swarm_module.html#parameter-default_addr_pool
       and https://docs.docker.com/reference/cli/docker/swarm/init/#default-addr-pool
 
+  polaris_docker_swarm_node_labels_to_remove:
+    type: array
+    default: []
+    description: List of labels to remove from all docker nodes
+
   polaris_docker_registry_username:
     type: string
 
