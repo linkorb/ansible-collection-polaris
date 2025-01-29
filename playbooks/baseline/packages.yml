@@ -12,11 +12,20 @@
           - ca-certificates
           - curl
           - fuse
+          - git
           - gnupg
+          - htop
+          - jq
           - lsb-release
           - net-tools
           - ngrep
           - nmap
+          - screen
           - software-properties-common
+          - sudo
+          - tmux
+          - unzip
           - vim
+          - vnstat
+          - zip
         state: present
