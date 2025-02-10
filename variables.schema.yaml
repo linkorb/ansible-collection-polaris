@@ -20,7 +20,7 @@ properties:
         fullname:
           type: string
         pubkey:
-          type: string
+          type: ['string', 'array']
           description: >
             The public key to associate with the given user. This value can be a string containing the content of
             the user's public key, a string containing a URL to a list of keys (e.g https://github.com/username.keys),
