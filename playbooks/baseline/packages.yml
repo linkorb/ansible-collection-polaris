@@ -8,6 +8,8 @@
     - name: install default apt packages
       ansible.builtin.apt:
         name:
+          - auditd
+          - audispd-plugins
           - apt-transport-https
           - ca-certificates
           - curl
