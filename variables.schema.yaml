@@ -92,6 +92,9 @@ properties:
           type: string
           description: The secret information.
 
+  polaris_tailscale_authkey:
+    type: string
+    description: A Tailscale Node Authorization auth key.
 
   polaris_tailscale_args:
     type: string
