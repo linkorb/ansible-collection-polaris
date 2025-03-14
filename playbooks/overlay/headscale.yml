@@ -1,8 +1,8 @@
 - name: Deploy the Headscale stack
   hosts: polaris_hosts
   tags:
-    - polaris.layer.overlay
-    - polaris.layer.overlay.headscale
+    - polaris.overlay
+    - polaris.overlay.headscale
   roles:
     - role: stackmanager
       vars:

@@ -2,8 +2,8 @@
   hosts: polaris_hosts
   become: true
   tags:
-    - polaris.layer.container
-    - polaris.layer.container.docker_engine
+    - polaris.container
+    - polaris.container.docker_engine
   tasks:
     - name: Host has dependencies of ansible modules
       ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml
@@ -22,8 +22,8 @@
 - name: Docker config
   hosts: polaris_hosts
   tags:
-    - polaris.layer.container
-    - polaris.layer.container.docker_engine
+    - polaris.container
+    - polaris.container.docker_engine
   tasks:
     - name: Adding docker users (for use without sudo)
       user:
@@ -42,9 +42,9 @@
 - name: Docker registry login
   hosts: polaris_hosts
   tags:
-    - polaris.layer.container
-    - polaris.layer.container.docker_engine
-    - polaris.layer.container.docker_engine.registry_login
+    - polaris.container
+    - polaris.container.docker_engine
+    - polaris.container.docker_engine.registry_login
   tasks:
     - name: Login to the Docker Container Registry
       community.general.docker_login:
@@ -52,4 +52,3 @@
         username: "{{ polaris_docker_registry_username }}"
         password: "{{ polaris_docker_registry_pat }}"
       become: true
-        # reauthorize: true

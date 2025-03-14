@@ -2,8 +2,8 @@
   hosts: polaris_hosts
   become: true
   tags:
-    - polaris.layer.baseline
-    - polaris.layer.baseline.prometheus_node_exporter
+    - polaris.baseline
+    - polaris.baseline.prometheus_node_exporter
   tasks:
     - name: Prometheus Node Exporter is installed
       ansible.builtin.import_role:

@@ -1,8 +1,8 @@
 - name: Deploy app stacks
   hosts: polaris_hosts
   tags:
-    - polaris.layer.app
-    - polaris.layer.app.stacks
+    - polaris.app
+    - polaris.app.stacks
   roles:
     - role: stackmanager
       vars:

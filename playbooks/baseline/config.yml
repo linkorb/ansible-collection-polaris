@@ -2,8 +2,8 @@
   hosts: polaris_hosts
   become: true
   tags:
-  - polaris.layer.baseline
-  - polaris.layer.baseline.config
+  - polaris.baseline
+  - polaris.baseline.config
   tasks:
 
   - name: The host name is correct

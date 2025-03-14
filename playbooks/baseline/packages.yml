@@ -2,8 +2,8 @@
   hosts: polaris_hosts
   become: true
   tags:
-    - polaris.layer.baseline
-    - polaris.layer.baseline.packages
+    - polaris.baseline
+    - polaris.baseline.packages
   tasks:
     - name: install default apt packages
       ansible.builtin.apt:

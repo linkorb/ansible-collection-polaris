@@ -1,8 +1,8 @@
 - name: Setup Tailscale
   hosts: polaris_hosts
   tags:
-    - polaris.layer.overlay
-    - polaris.layer.overlay.tailscale_client
+    - polaris.overlay
+    - polaris.overlay.tailscale_client
   tasks:
     - name: Setup tailscale client
       include_role:

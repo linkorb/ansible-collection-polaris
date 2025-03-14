@@ -2,8 +2,8 @@
   hosts: polaris_hosts
   become: yes
   tags:
-    - polaris.layer.baseline
-    - polaris.layer.baseline.admins
+    - polaris.baseline
+    - polaris.baseline.admins
   roles:
     - role: cchurch.admin-users
       admin_users: "{{ polaris_admins_active }}"

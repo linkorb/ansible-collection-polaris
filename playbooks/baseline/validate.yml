@@ -2,8 +2,8 @@
   hosts: polaris_hosts
   become: true
   tags:
-    - polaris.layer.baseline
-    - polaris.layer.baseline.validate
+    - polaris.baseline
+    - polaris.baseline.validate
   tasks:
   - name: load polaris variables validation schema
     ansible.builtin.set_fact:
