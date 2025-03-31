@@ -10,6 +10,9 @@
     - name: Docker is installed in the usual manner
       ansible.builtin.import_role:
         name: geerlingguy.docker
+      vars:
+        docker_daemon_options:
+          metrics-addr: "0.0.0.0:9323"
       when: has_big_disk is not defined or not has_big_disk
     - name: Docker is installed with its data-root on a big disk
       ansible.builtin.import_role:
@@ -17,6 +20,7 @@
       vars:
         docker_daemon_options:
           data-root: /mnt/bigdisk
+          metrics-addr: "0.0.0.0:9323"
       when: has_big_disk is defined and has_big_disk
 
 - name: Docker config
