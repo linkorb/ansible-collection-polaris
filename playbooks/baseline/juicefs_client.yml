@@ -12,3 +12,8 @@
       ansible.builtin.apt:
         name: juicefs
         state: present
+    - name: Point mount(8) to the juicefs mount program
+      ansible.builtin.file:
+        src: /usr/bin/juicefs
+        dest: /sbin/mount.juicefs
+        state: link

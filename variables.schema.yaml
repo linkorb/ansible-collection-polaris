@@ -92,6 +92,33 @@ properties:
           type: string
           description: The secret information.
 
+  polaris_filesystems:
+    type: array
+    default: []
+    description: A list of filesystems.
+    items:
+      type: object
+      additionalProperties: false
+      required: ['type', 'source', 'mount_point']
+      properties:
+        type:
+          type: string
+          description: The type of the filesystem.
+          examples: ['juicefs', 'nfs', 'tmpfs']
+        source:
+          type: string
+          description: The source of the filesystem.
+          examples: ['mysql://.../juicefs', 'my.nfs.host/nfs', 'tmpfs']
+        mount_point:
+          type: string
+          description: The filesystem is mounted to this path.
+          examples: ['/mnt', '/media/cdrom', '/run']
+        mount_opts:
+          type: string
+          default: ''
+          description: A comma-separated list of options.
+          examples: ['_netdev', 'defaults', 'noatime,nofail']
+
   polaris_tailscale_authkey:
     type: string
     description: A Tailscale Node Authorization auth key.

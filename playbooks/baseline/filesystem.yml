@@ -1,0 +1,15 @@
+- name: Mount filesystems
+  hosts: polaris_hosts
+  become: true
+  tags:
+    - polaris.baseline
+    - polaris.baseline.filesystem
+  tasks:
+    - name: Mount filesystems
+      loop: '{{ polaris_filesystems | default([]) }}'
+      ansible.posix.mount:
+        fstype: '{{ item.type }}'
+        opts: '{{ item.mount_opts | default(omit) }}'
+        path: '{{ item.mount_point }}'
+        src: '{{ item.source }}'
+        state: mounted
