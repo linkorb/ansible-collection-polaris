@@ -29,14 +29,18 @@
 #  ansible.builtin.import_playbook: linkorb.polaris.container.kubernetes
 
 
+# Load Balancer layer
+# This layer creates the docker network used by following layers
+- name: Hosts are running Traefik ingress
+  ansible.builtin.import_playbook: linkorb.polaris.lb.traefik
+
+
 # Overlay layer
 - name: Hosts are Headscale nodes
   ansible.builtin.import_playbook: linkorb.polaris.overlay.headscale
 - name: Hosts are Tailscale clients
   ansible.builtin.import_playbook: linkorb.polaris.overlay.tailscale_client
 
-- name: Hosts are running Traefik ingress
-  ansible.builtin.import_playbook: linkorb.polaris.lb.traefik
 
 # App layer
 - name: Hosts are running app stacks
