@@ -8,5 +8,6 @@
       include_role:
         name: artis3n.tailscale
       vars:
-        tailscale_args: "{{ polaris_tailscale_args|default('') }}"
-        tailscale_authkey: "{{ polaris_tailscale_authkey }}"
+        tailscale_args: '{{ polaris_tailscale_args | default(omit) }}'
+        tailscale_authkey: '{{ polaris_tailscale_authkey | default(omit) }}'
+        tailscale_up_skip: '{{ "false" if polaris_tailscale_authkey is defined else "true" }}'
