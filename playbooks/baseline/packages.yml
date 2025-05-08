@@ -13,6 +13,7 @@
           - apt-transport-https
           - ca-certificates
           - curl
+          - fail2ban
           - fuse
           - git
           - gnupg
