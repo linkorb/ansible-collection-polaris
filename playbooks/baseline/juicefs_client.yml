@@ -5,13 +5,32 @@
     - polaris.baseline
     - polaris.baseline.juicefs_client
   tasks:
-    - name: Add juicefs PPA
+    - name: Remove legacy juicefs deb repo
       ansible.builtin.apt_repository:
-        repo: 'ppa:juicefs/ppa'
+        repo: 'deb http://ppa.launchpad.net/juicefs/ppa/ubuntu {{ ansible_distribution_release }} main'
+        state: absent
+        filename: 'ppa_juicefs_ppa_{{ ansible_distribution_release }}.list'
+
+    - name: Remove juicefs key from the legacy apt keyring
+      ansible.builtin.apt_key:
+        id: '0xBF98E90CB4C62BF3A7CBBC44E4E0ACE307518D64'
+        state: absent
+
+    - name: Add juicefs deb repo, signed by key in /etc/apt/keyrings fetched from keyserver
+      deb822_repository:
+        name: juicefs
+        types: deb
+        uris: https://ppa.launchpadcontent.net/juicefs/ppa/ubuntu
+        suites: '{{ ansible_distribution_release }}'
+        components: main
+        architectures: amd64
+        signed_by: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xbf98e90cb4c62bf3a7cbbc44e4e0ace307518d64
+
     - name: Install juicefs client
       ansible.builtin.apt:
         name: juicefs
         state: present
+
     - name: Point mount(8) to the juicefs mount program
       ansible.builtin.file:
         src: /usr/bin/juicefs
