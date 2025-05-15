@@ -86,5 +86,6 @@
     name: '{{ stack.name }}'
     state: present
     with_registry_auth: true
+    prune: true
     compose:
          - '{{ stack.remote_path }}/docker-compose.yml'
