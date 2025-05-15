@@ -20,12 +20,14 @@
           - htop
           - jq
           - lsb-release
+          - mariadb-client-core
           - net-tools
           - ngrep
           - nmap
           - screen
           - software-properties-common
           - sudo
+          - tree
           - tmux
           - unzip
           - vim
