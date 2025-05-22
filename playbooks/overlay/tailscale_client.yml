@@ -10,4 +10,4 @@
       vars:
         tailscale_args: '{{ polaris_tailscale_args | default(omit) }}'
         tailscale_authkey: '{{ polaris_tailscale_authkey | default(omit) }}'
-        tailscale_up_skip: '{{ "false" if polaris_tailscale_authkey is defined else "true" }}'
+        tailscale_up_skip: '{{ false if (polaris_tailscale_authkey is defined) else true }}'
