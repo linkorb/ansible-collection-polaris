@@ -1,5 +1,5 @@
 - name: Baseline - hardening
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   become: true
   tags:
     - polaris.baseline

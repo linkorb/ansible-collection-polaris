@@ -1,5 +1,5 @@
 - name: Deploy app stacks
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   tags:
     - polaris.app
     - polaris.app.stacks

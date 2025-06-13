@@ -1,5 +1,5 @@
 - name: Deploy the Headscale stack
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   tags:
     - polaris.overlay
     - polaris.overlay.headscale
