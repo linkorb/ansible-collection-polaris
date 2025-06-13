@@ -1,5 +1,5 @@
 - name: Hosts are configured in the standard manner
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   become: true
   tags:
   - polaris.baseline

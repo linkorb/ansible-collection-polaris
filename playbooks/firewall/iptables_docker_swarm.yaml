@@ -1,5 +1,5 @@
 - name: Set iptables rules that don't intefere with Docker's iptables usage
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   tags:
     - polaris.firewall
     - polaris.firewall.iptables

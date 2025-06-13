@@ -1,4 +1,4 @@
-- hosts: polaris_hosts
+- hosts: '{{ target_group | default("polaris_hosts") }}'
   gather_facts: false
   tasks:
     - name: Ping test

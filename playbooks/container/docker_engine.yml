@@ -1,5 +1,5 @@
 - name: Docker engine installation
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   become: true
   tags:
     - polaris.container
@@ -28,7 +28,7 @@
       when: has_big_disk is defined and has_big_disk
 
 - name: Docker config
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   tags:
     - polaris.container
     - polaris.container.docker_engine
@@ -48,7 +48,7 @@
       become: true
 
 - name: Docker registry login
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   tags:
     - polaris.container
     - polaris.container.docker_engine

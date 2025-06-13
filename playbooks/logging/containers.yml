@@ -1,5 +1,5 @@
 - name: Logging - containers
-  hosts: polaris_hosts
+  hosts: '{{ target_group | default("polaris_hosts") }}'
   tags:
     - polaris.logging
     - polaris.logging.containers
