@@ -27,6 +27,7 @@
           - software-properties-common
           - sudo
           - tmux
+          - tree
           - unzip
           - vim
           - vnstat
