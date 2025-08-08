@@ -43,6 +43,8 @@
 
 
 # App layer
+- name: Hosts are running app databases
+  ansible.builtin.import_playbook: linkorb.polaris.app.databases
 - name: Hosts are running app stacks
   ansible.builtin.import_playbook: linkorb.polaris.app.stacks
 #- name: Hosts are running helmfile

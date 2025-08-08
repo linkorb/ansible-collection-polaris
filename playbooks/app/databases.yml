@@ -1,0 +1,38 @@
+- name: Databases and database users
+  hosts: '{{ target_group | default("polaris_hosts") }}'
+  tags:
+    - polaris.app
+    - polaris.app.databases
+  tasks:
+
+  - name: Target is ready to play
+    become: true
+    ansible.builtin.apt:
+      pkg:
+      - python3-pymysql
+      - mariadb-client
+    when: |-
+      databases | default([]) | length
+      or
+      database_users | default([]) | length
+
+  - name: Create databases
+    community.mysql.mysql_db:
+      name: '{{ item.name }}'
+      state: present
+      login_port: '{{ database_admin.port | default(3306)}}'
+      login_user: '{{ database_admin.user | default("root")}}'
+      login_password: '{{ database_admin.password }}'
+    loop: '{{ databases | default([]) }}'
+
+  - name: Create database users
+    community.mysql.mysql_user:
+      name: '{{ item.name }}'
+      host: '{{ item.host | default("%") }}'
+      password: '{{ item.password }}'
+      priv: '{{ item.privileges }}'
+      state: present
+      login_port: '{{ database_admin.port | default(3306)}}'
+      login_user: '{{ database_admin.user | default("root")}}'
+      login_password: '{{ database_admin.password }}'
+    loop: '{{ database_users | default([]) }}'
