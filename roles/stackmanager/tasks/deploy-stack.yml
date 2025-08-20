@@ -7,55 +7,59 @@
     state: directory
     mode: '0700'
 
-- name: 'Print directories that will be present in the {{ stack.name }} stack directory'
-  ansible.builtin.debug:
-    msg: 'directory: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
-    verbosity: 1
-  with_community.general.filetree: '{{ stack.local_path }}/'
+- name: Deploy the stack's directories
+  become: true
   when: item.state == 'directory'
+  block:
+  - name: 'Print directories that will be present in the {{ stack.name }} stack directory'
+    with_community.general.filetree: '{{ stack.local_path }}/'
+    ansible.builtin.debug:
+      msg: 'directory: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
+      verbosity: 1
+  - name: 'Directories are present in the {{ stack.name }} stack directory'
+    with_community.general.filetree: '{{ stack.local_path }}/'
+    ansible.builtin.file:
+      path: '{{ stack.remote_path }}/{{ item.path }}'
+      state: directory
+      mode: '{{ item.mode }}'
 
-- name: 'Directories are present in the {{ stack.name }} stack directory'
+- name: Deploy the stack's static files
   become: true
-  ansible.builtin.file:
-    path: '{{ stack.remote_path }}/{{ item.path }}'
-    state: directory
-    mode: '{{ item.mode }}'
-  with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'directory'
+  when:
+    - item.state == 'file'
+    - item.path | splitext | last not in ['.j2', '.j2mt']
+  block:
+  - name: 'Print static files that will be present in the {{ stack.name }} stack directory'
+    with_community.general.filetree: '{{ stack.local_path }}/'
+    ansible.builtin.debug:
+      msg: 'file: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
+      verbosity: 1
+  - name: 'Static files are present in the {{ stack.name }} stack directory'
+    with_community.general.filetree: '{{ stack.local_path }}/'
+    become: true
+    ansible.builtin.copy:
+      src: '{{ stack.local_path }}/{{ item.path }}'
+      dest: '{{ stack.remote_path }}/{{ item.path }}'
+      mode: u=rw,g=r,o=r
 
-- name: 'Print templated files that will be present in the {{ stack.name }} stack directory'
+- name: Deploy the stack's templated files
   become: true
-  ansible.builtin.debug:
-    msg: 'file: {{ stack.remote_path }}/{{ item.path | splitext | first }}; mode: {{ item.mode }}'
-    verbosity: 1
-  with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'file' and item.path | splitext | last == '.j2'
-
-- name: 'Templated files are present in the {{ stack.name }} stack directory'
-  become: true
-  ansible.builtin.template:
-    src: '{{ stack.local_path }}/{{ item.path }}'
-    dest: '{{ stack.remote_path }}/{{ item.path | splitext | first }}'
-    mode: u=rw,g=r,o=r
-  with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'file' and item.path | splitext | last == '.j2'
-
-- name: 'Print static files that will be present in the {{ stack.name }} stack directory'
-  become: true
-  ansible.builtin.debug:
-    msg: 'file: {{ stack.remote_path }}/{{ item.path }}; mode: {{ item.mode }}'
-    verbosity: 1
-  with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'file' and item.path | splitext | last != '.j2'
-
-- name: 'Static files are present in the {{ stack.name }} stack directory'
-  become: true
-  ansible.builtin.copy:
-    src: '{{ stack.local_path }}/{{ item.path }}'
-    dest: '{{ stack.remote_path }}/{{ item.path }}'
-    mode: u=rw,g=r,o=r
-  with_community.general.filetree: '{{ stack.local_path }}/'
-  when: item.state == 'file' and item.path | splitext | last != '.j2'
+  when:
+    - item.state == 'file'
+    - item.path | splitext | last == '.j2'
+  block:
+  - name: 'Print templated files that will be present in the {{ stack.name }} stack directory'
+    with_community.general.filetree: '{{ stack.local_path }}/'
+    become: true
+    ansible.builtin.debug:
+      msg: 'file: {{ stack.remote_path }}/{{ item.path | splitext | first }}; mode: {{ item.mode }}'
+      verbosity: 1
+  - name: 'Templated files are present in the {{ stack.name }} stack directory'
+    with_community.general.filetree: '{{ stack.local_path }}/'
+    ansible.builtin.template:
+      src: '{{ stack.local_path }}/{{ item.path }}'
+      dest: '{{ stack.remote_path }}/{{ item.path | splitext | first }}'
+      mode: u=rw,g=r,o=r
 
 - name: 'Docker volumes for {{ stack.name }} config are pesent in the swarm'
   become: true
