@@ -11,12 +11,14 @@
 
 - name: 'Initialize a list of selected stacks to deploy'
   set_fact:
-    selected_stacks: []
+    stacks_needing_path_info: []
+    stacks_needing_tenant_info: []
+    stacks_needing_tenant_config_info: []
     stacks_to_deploy: []
 
 - name: 'Select stacks to deploy on this host'
   set_fact:
-    selected_stacks: '{{ selected_stacks + [item] }}'
+    stacks_needing_path_info: '{{ stacks_needing_path_info + [item] }}'
   loop: '{{ manifest }}'
   when:
   - item.host == inventory_hostname
@@ -24,14 +26,35 @@
 
 - name: 'Enrich selected stacks with path info'
   set_fact:
-    stacks_to_deploy: '{{ stacks_to_deploy + [item | combine({"local_path": local_path_to_stacks~(item.path|default(item.name)), "remote_path": remote_path_to_stacks~item.name})] }}'
-  loop: '{{ selected_stacks }}'
+    stacks_needing_tenant_info: '{{ stacks_needing_tenant_info + [item | combine({"local_path": local_path_to_stacks~(item.path|default(item.name)), "remote_path": remote_path_to_stacks~item.name})] }}'
+  loop: '{{ stacks_needing_path_info }}'
 
 - name: 'Debug: manifest'
   ansible.builtin.debug:
     var: manifest
     verbosity: 1
-  when: stacks_to_deploy | length
+  when: stacks_needing_tenant_info | length
+
+- name: 'Enrich selected stacks with tenant info'
+  set_fact:
+    # lookup the contents of the var named by item.tenant_var; assign its content to item.tenants
+    stacks_needing_tenant_config_info: '{{ stacks_needing_tenant_config_info + [item | combine({"tenants": lookup("ansible.builtin.vars", item.tenant_var | default("none"), default=[])})] }}'
+  loop: '{{ stacks_needing_tenant_info }}'
+
+# This is so the stack's docker-compose.yaml can loop over stack.tenant_configs, writing docker config specs
+- name: 'Enrich selected stacks with tenant docker config info'
+  set_fact:
+    # loop over item.tenants and loop over tenant stackfiles and add docker_config to a list assigned to item.tenant_configs
+    # note: remove all whitespace so that the fact is a list, not a string that looks like a list
+    stacks_to_deploy: >-
+      {%- set tenant_configs = [] -%}
+      {%- for tenant in item.tenants | default([]) -%}
+        {%- for stackfile in tenant.stackfiles | default([]) -%}
+          {%- if stackfile.docker_config is defined %}{% set _ = tenant_configs.append(stackfile.docker_config) %}{% endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+      {{- stacks_to_deploy + [item | combine({"tenant_configs": tenant_configs})] -}}
+  loop: '{{ stacks_needing_tenant_config_info }}'
 
 - name: 'Debug: stacks_to_deploy (selected and enriched)'
   ansible.builtin.debug:

@@ -1,0 +1,21 @@
+# These tasks are included once for each of a stack's multi-tenant templates
+
+- ansible.builtin.debug:
+    msg: 'Multi-tenant template "{{ mt_filespec.path }}".'
+    verbosity: 1
+
+- name: Deploy the stack's multi-tenant templated files
+  become: true
+  loop: '{{ stack.tenants }}'
+  loop_control:
+    loop_var: tenant
+  ansible.builtin.template:
+    src: '{{ mt_filespec.src }}'
+    # Destination is the remote stack dir and a target-specific file name
+    dest: >-
+      {{ stack.remote_path }}/{{ tenant.stackfiles |
+      selectattr('template', 'eq', mt_filespec.path) |
+      map(attribute='docker_config') |
+      map(attribute='file') |
+      first }}
+    mode: u=rw,g=r,o=r

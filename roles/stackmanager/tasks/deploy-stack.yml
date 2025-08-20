@@ -42,6 +42,15 @@
       dest: '{{ stack.remote_path }}/{{ item.path }}'
       mode: u=rw,g=r,o=r
 
+- name: Deploy the stack's multi-tenant templates (each template results in a file per tenant)
+  with_community.general.filetree: '{{ stack.local_path }}/'
+  when:
+    - mt_filespec.state == 'file'
+    - mt_filespec.path | splitext | last == '.j2mt'
+  include_tasks: templated-file-per-tenant.yml
+  loop_control:
+    loop_var: mt_filespec
+
 - name: Deploy the stack's templated files
   become: true
   when:
