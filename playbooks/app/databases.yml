@@ -9,14 +9,17 @@
     become: true
     ansible.builtin.apt:
       pkg:
-      - python3-pymysql
+      - libpq-dev
       - mariadb-client
+      - postgresql-client
+      - python3-psycopg2
+      - python3-pymysql
     when: |-
       databases | default([]) | length
       or
       database_users | default([]) | length
 
-  - name: Create databases
+  - name: Create MariaDB databases
     community.mysql.mysql_db:
       name: '{{ item.name }}'
       state: present
@@ -24,8 +27,10 @@
       login_user: '{{ database_admin.user | default("root")}}'
       login_password: '{{ database_admin.password }}'
     loop: '{{ databases | default([]) }}'
+    when:
+      - item.family is not defined or item.family == 'mariadb'
 
-  - name: Create database users
+  - name: Create MariaDB database users
     community.mysql.mysql_user:
       name: '{{ item.name }}'
       host: '{{ item.host | default("%") }}'
@@ -36,3 +41,61 @@
       login_user: '{{ database_admin.user | default("root")}}'
       login_password: '{{ database_admin.password }}'
     loop: '{{ database_users | default([]) }}'
+    when: item.db is not defined
+
+  - name: Create Postgres databases
+    community.postgresql.postgresql_db:
+      name: '{{ item.name }}'
+      state: present
+      encoding: UTF-8
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ databases | default([]) }}'
+    when:
+      - item.family is defined
+      - item.family == 'pg'
+
+  - name: Create Postgres database users
+    community.postgresql.postgresql_user:
+      name: '{{ item.name }}'
+      password: '{{ item.password }}'
+      expires: 'infinity'
+      #role_attr_flags: 'CREATEDB,NOSUPERUSER'
+      login_db: '{{ item.db }}'
+      state: present
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ database_users | default([]) }}'
+    when: item.db is defined
+
+  - name: Postgres database users own their database
+    community.postgresql.postgresql_owner:
+      login_db: '{{ item.db }}'
+      new_owner: '{{ item.name }}'
+      obj_name: '{{ item.db }}'
+      obj_type: database
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ database_users | default([]) }}'
+    when: item.db is defined
+
+  - name: Postgres database users are granted priviliges over objects in the public schema of their database
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      privs: '{{ item.privileges }}'
+      type: schema
+      objs: public
+      login_db: '{{ item.db }}'
+      state: present
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ database_users | default([]) }}'
+    when: item.db is defined
