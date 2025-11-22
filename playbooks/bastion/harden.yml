@@ -1,0 +1,40 @@
+- name: Hardening
+  hosts: '{{ target_group | default("bastion") }}'
+  become: yes
+
+  handlers:
+
+    - name: Restart ssh
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+  tasks:
+
+    - name: Restrict sudoers to a small group of admins (bastion_sudoers)
+      ansible.builtin.command:
+        cmd: 'gpasswd -d {{ item.username }} sudo'
+      register: remove_sudo
+      failed_when: remove_sudo.rc != 0 and 'is not a member of' not in remove_sudo.stderr
+      changed_when: '"is not a member of" not in remove_sudo.stderr'
+      loop: '{{ polaris_admins_active | rejectattr("username", "in", bastion_sudoers|default([])) }}'
+
+    - name: Enable verbose sshd logging for jump/forward visibility
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config.d/audit.conf
+        regexp: '^#?LogLevel'
+        line: LogLevel VERBOSE
+        state: present
+        create: true
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart ssh
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Revoke root SSH keys (Lock down server)
+      ansible.builtin.file:
+        path: /root/.ssh/authorized_keys
+        state: absent
