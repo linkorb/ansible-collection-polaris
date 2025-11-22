@@ -1,0 +1,13 @@
+---
+audit_session_users: []  # list of {username: name}
+audit_session_shell_path: /usr/bin/tlog-rec-session
+audit_session_tlog_notice: |
+  \nATTENTION! Your session is being recorded!\n\n
+audit_session_writer: journal  # journal or file
+audit_session_shell_binary: /bin/bash
+
+# Whether to ensure auditd log_group is set to audit
+audit_session_set_audit_log_group: true
+
+# Extra packages to install alongside tlog/auditd if needed
+audit_session_extra_packages: []

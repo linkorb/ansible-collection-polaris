@@ -1,0 +1,64 @@
+---
+- name: Install audit/tlog packages
+  apt:
+    name: "{{ ['tlog', 'auditd'] + audit_session_extra_packages }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Create tlog group
+  group:
+    name: tlog
+    state: present
+
+- name: Create audit group
+  group:
+    name: audit
+    state: present
+
+- name: Configure auditd to allow group read access
+  lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^log_group ='
+    line: 'log_group = audit'
+    state: present
+  when: audit_session_set_audit_log_group
+  notify: Restart auditd
+
+- name: Create tlog lock directory
+  file:
+    path: /var/run/tlog
+    state: directory
+    owner: root
+    group: tlog
+    mode: '0775'
+
+- name: Deploy tlog-rec-session configuration
+  template:
+    src: tlog-rec-session.conf.j2
+    dest: /etc/tlog/tlog-rec-session.conf
+    mode: '0644'
+
+- name: Configure users to use tlog shell
+  user:
+    name: "{{ item.username }}"
+    shell: "{{ audit_session_shell_path }}"
+  loop: "{{ audit_session_users }}"
+  when: audit_session_users | length > 0 and item.username != 'root'
+
+- name: Add users to tlog/systemd-journal/audit groups
+  user:
+    name: "{{ item.username }}"
+    groups:
+      - tlog
+      - systemd-journal
+      - audit
+    append: yes
+  loop: "{{ audit_session_users }}"
+  when: audit_session_users | length > 0
+
+- name: Ensure auditd is running and enabled
+  service:
+    name: auditd
+    state: started
+    enabled: yes

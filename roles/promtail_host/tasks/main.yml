@@ -1,0 +1,58 @@
+---
+- name: Add Grafana apt key
+  apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Add Grafana apt repository
+  apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    filename: grafana
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install promtail
+  apt:
+    name: promtail
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Configure promtail user permissions
+  user:
+    name: promtail
+    groups:
+      - systemd-journal
+      - audit
+      - adm
+    append: yes
+
+- name: Ensure promtail state directory exists
+  file:
+    path: /var/lib/promtail
+    state: directory
+    owner: promtail
+    group: root
+    mode: '0750'
+
+- name: Ensure Loki push credentials are provided when basic auth is set
+  assert:
+    that:
+      - promtail_loki_basic_auth.name is defined
+      - promtail_loki_basic_auth.password is defined
+    fail_msg: "Set promtail_loki_basic_auth.name/password (see docs/logging.md)."
+  when: promtail_loki_basic_auth | length > 0
+
+- name: Render promtail configuration
+  template:
+    src: promtail-config.yml.j2
+    dest: /etc/promtail/config.yml
+    mode: '0644'
+  notify: Restart promtail
+
+- name: Ensure promtail service is enabled and running
+  service:
+    name: promtail
+    state: started
+    enabled: yes

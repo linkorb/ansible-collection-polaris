@@ -1,0 +1,29 @@
+---
+promtail_version: latest
+promtail_loki_url: https://draco-loki.linkorb.com/loki/api/v1/push
+promtail_loki_basic_auth: {}
+promtail_constellation_label: ''
+promtail_extra_labels: {}
+promtail_scrape_jobs:
+  - name: journal
+    journal:
+      path: /var/log/journal
+      max_age: 12h
+      labels:
+        job: systemd-journal
+      relabel_configs:
+        - source_labels: [__journal__systemd_unit]
+          target_label: unit
+  - name: syslog
+    static_configs:
+      - labels:
+          __path__: /var/log/syslog
+          job: syslog
+  - name: auditd
+    static_configs:
+      - labels:
+          __path__: /var/log/audit/audit.log
+          job: auditd
+promtail_http_listen_port: 9080
+promtail_grpc_listen_port: 0
+promtail_positions_file: /var/lib/promtail/positions.yaml

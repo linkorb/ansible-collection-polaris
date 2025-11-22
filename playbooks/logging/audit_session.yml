@@ -1,0 +1,6 @@
+- name: Polaris - audit session
+  hosts: '{{ target_group | default("polaris_hosts") }}'
+  become: yes
+  roles:
+    - role: linkorb.polaris.audit_session
+      audit_session_users: '{{ audit_session_users | default(polaris_admins_active | default([])) }}'

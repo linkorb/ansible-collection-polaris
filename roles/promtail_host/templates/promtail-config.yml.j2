@@ -1,0 +1,50 @@
+server:
+  http_listen_port: {{ promtail_http_listen_port }}
+  grpc_listen_port: {{ promtail_grpc_listen_port }}
+
+positions:
+  filename: {{ promtail_positions_file }}
+
+clients:
+  - url: '{{ promtail_loki_url }}'
+{% if promtail_loki_basic_auth.name is defined and promtail_loki_basic_auth.password is defined %}
+    basic_auth:
+      username: '{{ promtail_loki_basic_auth.name }}'
+      password: '{{ promtail_loki_basic_auth.password }}'
+{% endif %}
+    external_labels:
+      host: '{{ ansible_facts.hostname | default(ansible_hostname) }}'
+{% if promtail_constellation_label %}
+      constellation: '{{ promtail_constellation_label }}'
+{% endif %}
+{% for key, val in promtail_extra_labels.items() %}
+      {{ key }}: '{{ val }}'
+{% endfor %}
+
+scrape_configs:
+{% for job in promtail_scrape_jobs %}
+  - job_name: {{ job.name }}
+{% if job.journal is defined %}
+    journal:
+{% for key, val in job.journal.items() %}
+      {{ key }}: {{ val }}
+{% endfor %}
+{% endif %}
+{% if job.static_configs is defined %}
+    static_configs:
+{% for sc in job.static_configs %}
+      - labels:
+{% for key, val in sc.labels.items() %}
+          {{ key }}: {{ val }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if job.relabel_configs is defined %}
+    relabel_configs:
+{% for rc in job.relabel_configs %}
+      -{% for key, val in rc.items() %}
+        {{ key }}: {{ val }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
