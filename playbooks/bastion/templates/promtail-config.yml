@@ -1,0 +1,39 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: '{{ bastion_loki_url }}'
+    basic_auth:
+      username: '{{ bastion_loki_user_name }}'
+      password: '{{ bastion_loki_user_password }}'
+    external_labels:
+      host: '{{ ansible_facts.hostname | default(ansible_hostname) }}'
+      constellation: '{{ bastion_constellation_label }}'
+
+scrape_configs:
+  - job_name: journal
+    journal:
+      json: false
+      labels:
+        job: systemd-journal
+      max_age: 12h
+      path: /var/log/journal
+    relabel_configs:
+      - source_labels: [__journal__systemd_unit]
+        target_label: unit
+
+  - job_name: syslog
+    static_configs:
+      - labels:
+          __path__: /var/log/syslog
+          job: syslog
+
+  - job_name: auditd
+    static_configs:
+      - labels:
+          __path__: /var/log/audit/audit.log
+          job: auditd

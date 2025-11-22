@@ -1,0 +1,68 @@
+- name: Audit Session
+  hosts: '{{ target_group | default("bastion") }}'
+  become: yes
+  handlers:
+
+    - name: Restart auditd
+      ansible.builtin.service:
+        name: auditd
+        state: restarted
+
+  tasks:
+
+    - name: Install audit/tlog packages
+      ansible.builtin.apt:
+        name:
+          - tlog
+          - auditd
+        state: present
+        update_cache: yes
+
+    - name: Create audit group
+      ansible.builtin.group:
+        name: audit
+        state: present
+
+    - name: Configure auditd to allow group read access
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^log_group ='
+        line: 'log_group = audit'
+        state: present
+      notify: Restart auditd
+
+    - name: Session lock files can be written to the tlog lock directory
+      ansible.builtin.file:
+        path: /run/tlog
+        state: directory
+        owner: _tlog
+        group: _tlog
+        mode: 0775
+
+    - name: Deploy tlog-rec-session configuration
+      ansible.builtin.copy:
+        src: tlog-rec-session.conf
+        dest: /etc/tlog/tlog-rec-session.conf
+        mode: 0644
+
+    - name: Configure users to use tlog shell
+      ansible.builtin.user:
+        name: "{{ item.username }}"
+        shell: /usr/bin/tlog-rec-session
+      loop: "{{ polaris_admins_active }}"
+
+    - name: Add users to tlog/systemd-journal/audit groups
+      ansible.builtin.user:
+        name: "{{ item.username }}"
+        groups:
+          - _tlog
+          - systemd-journal
+          - audit
+        append: yes
+      loop: "{{ polaris_admins_active }}"
+
+    - name: Ensure auditd is running and enabled
+      ansible.builtin.service:
+        name: auditd
+        state: started
+        enabled: yes
