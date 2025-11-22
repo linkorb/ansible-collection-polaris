@@ -44,6 +44,12 @@
     fail_msg: "Set promtail_loki_basic_auth.name/password (see docs/logging.md)."
   when: promtail_loki_basic_auth | length > 0
 
+- name: Ensure Loki URL is provided
+  assert:
+    that:
+      - promtail_loki_url | length > 0
+    fail_msg: "Set promtail_loki_url (Loki push endpoint) via inventory or extra vars."
+
 - name: Render promtail configuration
   template:
     src: promtail-config.yml.j2

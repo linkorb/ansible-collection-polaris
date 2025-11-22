@@ -1,5 +1,5 @@
 ---
-promtail_loki_url: https://draco-loki.linkorb.com/loki/api/v1/push
+promtail_loki_url: ''
 promtail_loki_basic_auth: {}
 promtail_constellation_label: ''
 promtail_extra_labels: {}
