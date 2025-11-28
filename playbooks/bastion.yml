@@ -1,0 +1,41 @@
+- name: Secure Bastion
+  hosts: "{{ target_group | default('bastion') }}"
+  become: yes
+  roles:
+    - role: linkorb.polaris.audit_session
+      audit_session_users: "{{ polaris_admins_active }}"
+    - role: linkorb.polaris.promtail_host
+      promtail_loki_url: https://draco-loki.linkorb.com/loki/api/v1/push
+      promtail_loki_basic_auth: "{{ promtail_loki_push_api_user }}"
+      promtail_constellation_label: bastion
+  tasks:
+    - name: Ensure admins are not in sudo group
+      command:
+        cmd: gpasswd -d {{ item.username }} sudo
+      register: remove_sudo
+      failed_when: remove_sudo.rc != 0 and 'is not a member of' not in remove_sudo.stderr
+      changed_when: "'is not a member of' not in remove_sudo.stderr"
+      loop: "{{ polaris_admins_active }}"
+
+    - name: Enable verbose sshd logging for jump/forward visibility
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?LogLevel'
+        line: 'LogLevel VERBOSE'
+        state: present
+        create: no
+      notify: Restart ssh
+
+    - name: Flush handlers
+      meta: flush_handlers
+
+    - name: Revoke root SSH keys (Lock down server)
+      file:
+        path: /root/.ssh/authorized_keys
+        state: absent
+
+  handlers:
+    - name: Restart ssh
+      service:
+        name: ssh
+        state: restarted
