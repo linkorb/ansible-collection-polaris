@@ -1,3 +1,21 @@
+- name: Bastion hosts are configured with Polaris tasks
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.config
+
+- name: Bastion hosts have useful packages
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.packages
+
+- name: Bastion hosts are configured with admin users
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.admins
+
+- name: Bastion hosts are hardened
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.hardening
+
+- name: Bastion hosts export metrics to Prometheus
+  ansible.builtin.import_playbook: linkorb.polaris.baseline.prometheus_node_exporter
+
+- name: Bastion hosts join the tailnet
+  ansible.builtin.import_playbook: linkorb.polaris.overlay.tailscale_client
+
 - name: Secure Bastion
   hosts: "{{ target_group | default('bastion') }}"
   become: yes
