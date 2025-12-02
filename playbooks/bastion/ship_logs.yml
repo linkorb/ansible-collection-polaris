@@ -1,0 +1,58 @@
+- name: Ship Logs to Loki
+  hosts: '{{ target_group | default("bastion") }}'
+  become: yes
+  handlers:
+
+    - name: Restart promtail
+      ansible.builtin.service:
+        name: promtail
+        state: restarted
+
+  tasks:
+
+    - name: Add Grafana apt key
+      ansible.builtin.apt_key:
+        url: https://apt.grafana.com/gpg.key
+        state: present
+
+    - name: Add Grafana apt repository
+      ansible.builtin.apt_repository:
+        repo: deb https://apt.grafana.com stable main
+        filename: grafana
+        state: present
+
+    - name: Install promtail
+      ansible.builtin.apt:
+        name: promtail
+        state: present
+        update_cache: yes
+
+    - name: Configure promtail user permissions
+      ansible.builtin.user:
+        name: promtail
+        groups:
+          - systemd-journal
+          - audit
+          - adm
+        append: yes
+
+    - name: Ensure promtail state directory exists
+      ansible.builtin.file:
+        path: /var/lib/promtail
+        state: directory
+        owner: promtail
+        group: root
+        mode: 0750
+
+    - name: Render promtail configuration
+      ansible.builtin.template:
+        src: promtail-config.yml
+        dest: /etc/promtail/config.yml
+        mode: 0644
+      notify: Restart promtail
+
+    - name: Ensure promtail service is enabled and running
+      ansible.builtin.service:
+        name: promtail
+        state: started
+        enabled: yes

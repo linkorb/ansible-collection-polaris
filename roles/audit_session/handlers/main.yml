@@ -1,5 +1,0 @@
----
-- name: Restart auditd
-  service:
-    name: auditd
-    state: restarted

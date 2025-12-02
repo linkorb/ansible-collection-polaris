@@ -1,6 +1,0 @@
-- name: Polaris - promtail log shipping
-  hosts: '{{ target_group | default("polaris_hosts") }}'
-  become: yes
-  roles:
-    - role: linkorb.polaris.promtail_host
-      promtail_loki_url: '{{ promtail_loki_url }}'
