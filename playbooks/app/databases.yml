@@ -43,7 +43,8 @@
     loop: '{{ database_users | default([]) }}'
     when: item.db is not defined
 
-  - name: Create Postgres databases
+  - name: Postgres databases have been created
+    register: pg_db_create
     community.postgresql.postgresql_db:
       name: '{{ item.name }}'
       state: present
@@ -52,50 +53,276 @@
       login_port: '{{ pg_database_admin.port | default(5432)}}'
       login_user: '{{ pg_database_admin.user | default("postgres")}}'
       login_password: '{{ pg_database_admin.password }}'
-    loop: '{{ databases | default([]) }}'
-    when:
-      - item.family is defined
-      - item.family == 'pg'
+    loop: '{{ pg_databases | default([]) }}'
 
-  - name: Create Postgres database users
+  - name: (debug) Queries issued by task "Postgres databases have been created"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_db_create.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].executed_commands"
+
+  - name: Postgres roles have been created
+    register: pg_roles_create
+    community.postgresql.postgresql_user:
+      name: '{{ item.name }}'
+      role_attr_flags: NOLOGIN
+      state: present
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_roles | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles have been created"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_roles_create.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres roles can connect to databases
+    register: pg_roles_conn
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      login_db: '{{ item.db }}'
+      privs: CONNECT
+      type: database
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_role_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles can connect to databases"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_roles_conn.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres roles have schema privileges
+    register: pg_role_schemapriv
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      login_db: '{{ item.db }}'
+      objs: '{{ item.schema }}'
+      privs: '{{ item.schema_privileges }}'
+      type: schema
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_role_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles have schema privileges"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_role_schemapriv.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres roles have table privileges
+    register: pg_roles_tblpriv
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      login_db: '{{ item.db }}'
+      schema: '{{ item.schema }}'
+      privs: '{{ item.privileges }}'
+      type: table
+      objs: ALL_IN_SCHEMA
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_role_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles have table privileges"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_roles_tblpriv.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres roles can use sequences
+    register: pg_roles_seqs
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      login_db: '{{ item.db }}'
+      schema: '{{ item.schema }}'
+      privs: USAGE
+      type: sequence
+      objs: ALL_IN_SCHEMA
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_role_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles can use sequences"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_roles_seqs.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres roles have future (default) table privileges
+    register: pg_roles_dflt_tblprivs
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      login_db: '{{ item.db }}'
+      schema: '{{ item.schema }}'
+      privs: '{{ item.privileges }}'
+      type: default_privs
+      objs: TABLES
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_role_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles have future (default) table privileges"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_roles_dflt_tblprivs.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres roles have future (default) sequence privileges
+    register: pg_roles_dflt_seqprivs
+    community.postgresql.postgresql_privs:
+      role: '{{ item.name }}'
+      login_db: '{{ item.db }}'
+      schema: '{{ item.schema }}'
+      privs: USAGE
+      type: default_privs
+      objs: SEQUENCES
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_role_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres roles have future (default) sequence privileges"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_roles_dflt_seqprivs.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres database users have been created
+    register: pg_user_create
     community.postgresql.postgresql_user:
       name: '{{ item.name }}'
       password: '{{ item.password }}'
-      expires: 'infinity'
-      #role_attr_flags: 'CREATEDB,NOSUPERUSER'
-      login_db: '{{ item.db }}'
       state: present
       login_host: 127.0.0.1
       login_port: '{{ pg_database_admin.port | default(5432)}}'
       login_user: '{{ pg_database_admin.user | default("postgres")}}'
       login_password: '{{ pg_database_admin.password }}'
-    loop: '{{ database_users | default([]) }}'
-    when: item.db is defined
+    loop: '{{ pg_users | default([]) }}'
 
-  - name: Postgres database users own their database
-    community.postgresql.postgresql_owner:
-      login_db: '{{ item.db }}'
-      new_owner: '{{ item.name }}'
-      obj_name: '{{ item.db }}'
-      obj_type: database
+  - name: (debug) Queries issued by task "Postgres database users have been created"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_user_create.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres users are granted roles
+    register: pg_user_role
+    community.postgresql.postgresql_membership:
+      group: '{{ item.name }}'
+      target_roles: '{{ item.users }}'
+      state: present
       login_host: 127.0.0.1
       login_port: '{{ pg_database_admin.port | default(5432)}}'
       login_user: '{{ pg_database_admin.user | default("postgres")}}'
       login_password: '{{ pg_database_admin.password }}'
-    loop: '{{ database_users | default([]) }}'
-    when: item.db is defined
+    loop: '{{ pg_role_users | default([]) }}'
 
-  - name: Postgres database users are granted priviliges over objects in the public schema of their database
+  - name: (debug) Queries issued by task "Postgres users are granted roles"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_user_role.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres users have function privileges
+    register: pg_user_funcpriv
     community.postgresql.postgresql_privs:
       role: '{{ item.name }}'
-      privs: '{{ item.privileges }}'
-      type: schema
-      objs: public
       login_db: '{{ item.db }}'
-      state: present
+      schema: '{{ item.schema }}'
+      privs: '{{ item.privileges }}'
+      type: function
+      objs: '{{ item.functions }}'
       login_host: 127.0.0.1
       login_port: '{{ pg_database_admin.port | default(5432)}}'
       login_user: '{{ pg_database_admin.user | default("postgres")}}'
       login_password: '{{ pg_database_admin.password }}'
-    loop: '{{ database_users | default([]) }}'
-    when: item.db is defined
+    loop: '{{ pg_user_privileges | default([]) }}'
+
+  - name: (debug) Queries issued by task "Postgres users have function privileges"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_user_funcpriv.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres PUBLIC role cannot create objects in the public schema of these dbs (REVOKE CREATE ON SCHEMA public FROM PUBLIC)
+    register: pg_public_nocreate
+    community.postgresql.postgresql_privs:
+      state: absent
+      role: PUBLIC
+      login_db: '{{ item.name }}'
+      objs: public
+      privs: CREATE
+      type: schema
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_databases | default([]) }}'
+
+  - name: (debug) Queries issued by task "REVOKE CREATE ON SCHEMA public FROM PUBLIC"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_public_nocreate.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
+
+  - name: Postgres PUBLIC role cannot connect to these dbs (REVOKE ALL ON DATABASE $mydatabase FROM PUBLIC)
+    register: pg_public_noconn
+    community.postgresql.postgresql_privs:
+      state: absent
+      role: PUBLIC
+      login_db: '{{ item.name }}'
+      objs: '{{ item.name }}'
+      privs: ALL
+      type: database
+      login_host: 127.0.0.1
+      login_port: '{{ pg_database_admin.port | default(5432)}}'
+      login_user: '{{ pg_database_admin.user | default("postgres")}}'
+      login_password: '{{ pg_database_admin.password }}'
+    loop: '{{ pg_databases | default([]) }}'
+
+  - name: (debug) Queries issued by task "REVOKE ALL ON DATABASE $mydatabase FROM PUBLIC"
+    ansible.builtin.debug:
+      var: item
+      verbosity: 1
+    loop: '{{ pg_public_noconn.results | community.general.json_query(query) }}'
+    vars:
+      query: "[].queries"
