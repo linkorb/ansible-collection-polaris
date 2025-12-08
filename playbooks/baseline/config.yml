@@ -4,6 +4,18 @@
   tags:
   - polaris.baseline
   - polaris.baseline.config
+  handlers:
+
+  - name: Update Grub
+    become: true
+    ansible.builtin.command: update-grub
+
+  - name: Restart ssh.service
+    become: true
+    ansible.builtin.service:
+      name: ssh.service
+      state: restarted
+
   tasks:
 
   - name: The host name is correct
@@ -53,7 +65,41 @@
         pool: true
         iburst: true
 
-  handlers:
-  - name: Update Grub
+  - name: SSH Daemon disallows login with an empty password
     become: true
-    ansible.builtin.command: update-grub
+    when: remote_user is not defined or remote_user != 'root'
+    notify: Restart ssh.service
+    ansible.builtin.lineinfile:
+      dest: /etc/ssh/sshd_config.d/login-restrictions.conf
+      regexp: '^(#\s*)?PermitEmptyPasswords'
+      line: 'PermitEmptyPasswords no'
+      create: true
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: SSH Daemon disallows login by root
+    become: true
+    when: remote_user is not defined or remote_user != 'root'
+    notify: Restart ssh.service
+    ansible.builtin.lineinfile:
+      dest: /etc/ssh/sshd_config.d/login-restrictions.conf
+      regexp: '^(#\s*)?PermitRootLogin'
+      line: 'PermitRootLogin no'
+      create: true
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: SSH Daemon disallows login with password
+    become: true
+    when: remote_user is not defined or remote_user != 'root'
+    notify: Restart ssh.service
+    ansible.builtin.lineinfile:
+      dest: /etc/ssh/sshd_config.d/login-restrictions.conf
+      regexp: '^(#\s*)?PasswordAuthentication '
+      line: 'PasswordAuthentication no'
+      create: true
+      owner: root
+      group: root
+      mode: '0644'
