@@ -19,14 +19,14 @@
           ansible.builtin.copy:
             dest: "/etc/traefik/certificates/{{ item.domain }}.cert"
             content: "{{ lookup('community.sops.sops', item.certFile, input_type='yaml') }}"
-          loop: "{{ polaris_traefik_tls_files }}"
+          loop: "{{ polaris_traefik_tls_files | default([]) }}"
           become: true
 
         - name: Copy TLS key files
           ansible.builtin.copy:
             dest: "/etc/traefik/certificates/{{ item.domain }}.key"
             content: "{{ lookup('community.sops.sops', item.keyFile, input_type='yaml') }}"
-          loop: "{{ polaris_traefik_tls_files }}"
+          loop: "{{ polaris_traefik_tls_files | default([]) }}"
           become: true
 
     - name: Create traefik docker network
