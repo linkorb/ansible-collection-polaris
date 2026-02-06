@@ -1,0 +1,136 @@
+- name: Network - persistent SMTP egress pinning
+  hosts: '{{ target_group | default("polaris_hosts") }}'
+  become: true
+  tags:
+    - polaris.network
+    - polaris.network.mail_egress
+  vars:
+    polaris_mail_egress_defaults:
+      enabled: false
+      routing_table_id: 200
+      routing_table_name: mailout
+      rule_priority: 100
+      source_rule_priority: 90
+      fwmark: "0x25"
+      docker_bridge_interface: docker_gwbridge
+      smtp_ports: [25, 465, 587, 993]
+      rp_filter_mode: "2"
+
+  tasks:
+    - name: Merge default and host mail egress settings
+      ansible.builtin.set_fact:
+        polaris_mail_egress_effective: >-
+          {{
+            polaris_mail_egress_defaults
+            | combine(polaris_mail_egress | default({}), recursive=True)
+          }}
+
+    - name: Skip host when mail egress pinning is disabled
+      ansible.builtin.meta: end_host
+      when: not polaris_mail_egress_effective.enabled | bool
+
+    - name: Validate required mail egress settings
+      ansible.builtin.assert:
+        that:
+          - polaris_mail_egress_effective.public_ip is defined
+          - polaris_mail_egress_effective.public_interface is defined
+          - polaris_mail_egress_effective.smtp_ports | length > 0
+
+    - name: Detect public gateway from interface default route when not provided
+      ansible.builtin.shell: >-
+        ip -4 route show default dev {{ polaris_mail_egress_effective.public_interface }}
+        | awk '{for(i=1;i<=NF;i++) if($i=="via"){print $(i+1); exit}}'
+      register: polaris_mail_egress_public_route
+      changed_when: false
+      when: polaris_mail_egress_effective.public_gateway is not defined
+
+    - name: Finalize public gateway setting
+      ansible.builtin.set_fact:
+        polaris_mail_egress_effective: >-
+          {{
+            polaris_mail_egress_effective
+            | combine({
+              'public_gateway': (
+                polaris_mail_egress_effective.public_gateway
+                if polaris_mail_egress_effective.public_gateway is defined
+                else (polaris_mail_egress_public_route.stdout | trim)
+              )
+            }, recursive=True)
+          }}
+
+    - name: Validate resolved public gateway
+      ansible.builtin.assert:
+        that:
+          - polaris_mail_egress_effective.public_gateway is defined
+          - polaris_mail_egress_effective.public_gateway | length > 0
+
+    - name: Build interface list for rp_filter configuration
+      ansible.builtin.set_fact:
+        polaris_mail_egress_rp_filter_interfaces: >-
+          {{
+            (
+              [
+                'all',
+                'default',
+                polaris_mail_egress_effective.public_interface,
+                polaris_mail_egress_effective.docker_bridge_interface
+              ]
+              + (
+                [polaris_mail_egress_effective.private_interface]
+                if (polaris_mail_egress_effective.private_interface | default('') | length > 0)
+                else []
+              )
+            ) | unique
+          }}
+
+    - name: Set rp_filter to loose mode for asymmetric routing support
+      ansible.posix.sysctl:
+        name: "net.ipv4.conf.{{ item }}.rp_filter"
+        value: "{{ polaris_mail_egress_effective.rp_filter_mode }}"
+        state: present
+        sysctl_set: true
+        reload: false
+      loop: "{{ polaris_mail_egress_rp_filter_interfaces }}"
+
+    - name: Ensure dedicated routing table name exists
+      ansible.builtin.lineinfile:
+        path: /etc/iproute2/rt_tables
+        regexp: "^{{ polaris_mail_egress_effective.routing_table_id }}\\s+"
+        line: "{{ polaris_mail_egress_effective.routing_table_id }} {{ polaris_mail_egress_effective.routing_table_name }}"
+        state: present
+
+    - name: Install mail egress apply script
+      ansible.builtin.template:
+        src: templates/polaris-mail-egress.sh.j2
+        dest: /usr/local/sbin/polaris-mail-egress.sh
+        owner: root
+        group: root
+        mode: "0755"
+      notify: restart polaris-mail-egress
+
+    - name: Install mail egress systemd unit
+      ansible.builtin.template:
+        src: templates/polaris-mail-egress.service.j2
+        dest: /etc/systemd/system/polaris-mail-egress.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart polaris-mail-egress
+
+    - name: Ensure mail egress service is enabled
+      ansible.builtin.systemd:
+        name: polaris-mail-egress.service
+        enabled: true
+        daemon_reload: true
+
+    - name: Apply mail egress rules now
+      ansible.builtin.command: /usr/local/sbin/polaris-mail-egress.sh
+      changed_when: false
+
+  handlers:
+    - name: restart polaris-mail-egress
+      ansible.builtin.systemd:
+        name: polaris-mail-egress.service
+        enabled: true
+        state: restarted
+        daemon_reload: true
