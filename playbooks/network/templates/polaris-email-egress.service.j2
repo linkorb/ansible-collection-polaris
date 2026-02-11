@@ -1,12 +1,12 @@
 [Unit]
-Description=Polaris SMTP egress pinning rules
+Description=Polaris email egress pinning rules
 After=network-online.target docker.service
 Wants=network-online.target
 Requires=docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/polaris-mail-egress.sh
+ExecStart=/usr/local/sbin/polaris-email-egress.sh
 RemainAfterExit=yes
 
 [Install]

@@ -1,15 +1,16 @@
 #!/bin/sh
 set -eu
 
-NEW_IP="{{ polaris_mail_egress_effective.public_ip }}"
-PUB_IF="{{ polaris_mail_egress_effective.public_interface }}"
-PUB_GW="{{ polaris_mail_egress_effective.public_gateway }}"
-TABLE_ID="{{ polaris_mail_egress_effective.routing_table_id }}"
-RULE_PRIO="{{ polaris_mail_egress_effective.rule_priority }}"
-SOURCE_RULE_PRIO="{{ polaris_mail_egress_effective.source_rule_priority }}"
-FWMARK="{{ polaris_mail_egress_effective.fwmark }}"
-DOCKER_IF="{{ polaris_mail_egress_effective.docker_bridge_interface }}"
-SMTP_PORTS="{{ polaris_mail_egress_effective.smtp_ports | join(',') }}"
+NEW_IP="{{ polaris_email_egress_effective.public_ip }}"
+PUB_IF="{{ polaris_email_egress_effective.public_interface }}"
+PUB_GW="{{ polaris_email_egress_effective.public_gateway }}"
+TABLE_ID="{{ polaris_email_egress_effective.routing_table_id }}"
+RULE_PRIO="{{ polaris_email_egress_effective.rule_priority }}"
+SOURCE_RULE_PRIO="{{ polaris_email_egress_effective.source_rule_priority }}"
+FWMARK="{{ polaris_email_egress_effective.fwmark }}"
+DOCKER_IF="{{ polaris_email_egress_effective.docker_bridge_interface }}"
+SMTP_PORTS="{{ polaris_email_egress_effective.smtp_ports | join(',') }}"
+SOURCE_MARK_PORTS="{{ (polaris_email_egress_effective.smtp_ports + (polaris_email_egress_effective.http_ports | default([]))) | unique | join(',') }}"
 
 ip route replace default via "$PUB_GW" dev "$PUB_IF" src "$NEW_IP" table "$TABLE_ID"
 
@@ -26,14 +27,14 @@ ip route flush cache
 iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
   || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
 
-iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
-  || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
+iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$SOURCE_MARK_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$SOURCE_MARK_PORTS" -j MARK --set-mark "$FWMARK"
 
 iptables -w -t mangle -C OUTPUT -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
   || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
 
-iptables -w -t mangle -C OUTPUT -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
-  || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
+iptables -w -t mangle -C OUTPUT -p tcp -m multiport --sports "$SOURCE_MARK_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --sports "$SOURCE_MARK_PORTS" -j MARK --set-mark "$FWMARK"
 
 iptables -w -t nat -C POSTROUTING -m mark --mark "$FWMARK" -o "$PUB_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j SNAT --to-source "$NEW_IP" 2>/dev/null \
   || iptables -w -t nat -A POSTROUTING -m mark --mark "$FWMARK" -o "$PUB_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j SNAT --to-source "$NEW_IP"
