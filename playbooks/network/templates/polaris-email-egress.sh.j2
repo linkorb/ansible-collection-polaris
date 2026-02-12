@@ -11,7 +11,6 @@ SOURCE_RULE_PRIO="{{ polaris_email_egress_effective.source_rule_priority }}"
 FWMARK="{{ polaris_email_egress_effective.fwmark }}"
 DOCKER_IF="{{ polaris_email_egress_effective.docker_bridge_interface }}"
 SMTP_PORTS="{{ polaris_email_egress_effective.smtp_ports | join(',') }}"
-HTTP_PORTS="{{ polaris_email_egress_effective.http_ports | default([]) | join(',') }}"
 
 ip route replace default via "$PUB_GW" dev "$PUB_IF" src "$NEW_IP" table "$TABLE_ID"
 
@@ -25,6 +24,17 @@ fi
 
 ip route flush cache
 
+# Any NEW inbound flow targeting the dedicated IP stores the egress mark in conntrack.
+# Reply packets for these connections can then restore and reuse the same policy route.
+iptables -w -t mangle -C PREROUTING -i "$PUB_IF" -d "$NEW_IP" -m conntrack --ctstate NEW -j CONNMARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -i "$PUB_IF" -d "$NEW_IP" -m conntrack --ctstate NEW -j CONNMARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C PREROUTING -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C OUTPUT -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A OUTPUT -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK"
+
 # SMTP traffic is always pinned to the dedicated path.
 iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
   || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
@@ -37,16 +47,6 @@ iptables -w -t mangle -C OUTPUT -p tcp -m multiport --dports "$SMTP_PORTS" -j MA
 
 iptables -w -t mangle -C OUTPUT -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
   || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
-
-# HTTP(S) replies are pinned only when the original destination IP was NEW_IP.
-# This prevents diverting 80/443 traffic served from non-dedicated host IPs.
-if [ -n "$HTTP_PORTS" ]; then
-  iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$HTTP_PORTS" -m conntrack --ctdir REPLY --ctorigdst "$NEW_IP" -j MARK --set-mark "$FWMARK" 2>/dev/null \
-    || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$HTTP_PORTS" -m conntrack --ctdir REPLY --ctorigdst "$NEW_IP" -j MARK --set-mark "$FWMARK"
-
-  iptables -w -t mangle -C OUTPUT -p tcp -m multiport --sports "$HTTP_PORTS" -m conntrack --ctdir REPLY --ctorigdst "$NEW_IP" -j MARK --set-mark "$FWMARK" 2>/dev/null \
-    || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --sports "$HTTP_PORTS" -m conntrack --ctdir REPLY --ctorigdst "$NEW_IP" -j MARK --set-mark "$FWMARK"
-fi
 
 iptables -w -t nat -C POSTROUTING -m mark --mark "$FWMARK" -o "$PUB_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j SNAT --to-source "$NEW_IP" 2>/dev/null \
   || iptables -w -t nat -A POSTROUTING -m mark --mark "$FWMARK" -o "$PUB_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j SNAT --to-source "$NEW_IP"

@@ -14,8 +14,7 @@
       source_rule_priority: 90
       fwmark: "0x25"
       docker_bridge_interface: docker_gwbridge
-      smtp_ports: [25, 465, 587, 993]
-      http_ports: [80, 443]
+      smtp_ports: [25, 465, 587]
       rp_filter_mode: "2"
 
   tasks:

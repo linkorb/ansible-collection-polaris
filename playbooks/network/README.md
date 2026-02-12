@@ -2,8 +2,9 @@
 
 ## Email Egress Pinning (`email_egress.yml`)
 
-This playbook exists to keep all email-related traffic for `mail.linkorb.com`
-on one stable dedicated public IP.
+This playbook exists to keep `mail.linkorb.com` on one stable dedicated public
+IP for inbound and reply-path symmetry, while also forcing outbound-initiated
+SMTP to use that same IP.
 
 Why this is needed:
 
@@ -22,11 +23,12 @@ What the playbook enforces:
 - A dedicated routing table with default route via the public interface gateway.
 - Policy rule: email fwmark (`0x25`) -> dedicated routing table.
 - Policy rule: source `public_ip/32` -> dedicated routing table.
-- iptables mangle marks for SMTP/Submission/SMTPS/IMAPS destination flows.
+- iptables connmark on new inbound connections targeting `public_ip`, then mark
+  restore on reply packets, so traffic that arrived on the dedicated IP returns
+  through the dedicated route regardless of application port.
+- iptables mangle marks for outbound-initiated SMTP/Submission/SMTPS flows
+  (`smtp_ports`, default `25,465,587`).
 - iptables mangle source-port marks for SMTP ports.
-- For configured HTTP ports (`http_ports`, default `80/443`), marking is
-  applied only to reply traffic whose original destination IP is the dedicated
-  mail IP, so unrelated HTTP(S) traffic on other host IPs is not diverted.
 - SNAT to the dedicated public IP for marked SMTP egress.
 - `rp_filter=2` (loose mode) on relevant interfaces (`all`, `default`,
   public interface, docker bridge, and optional private interface).
@@ -36,10 +38,10 @@ Two-IP behavior:
 
 - Hosts can serve traffic on both dedicated and non-dedicated public IPs.
 - SMTP flows are always pinned to the dedicated path for reputation stability.
-- HTTP(S) flows are pinned only when conntrack says the original destination was
-  the dedicated mail IP (`--ctdir REPLY --ctorigdst <public_ip>`).
+- Any flow that entered via the dedicated IP is pinned for its reply direction
+  by connection mark, so no per-port HTTP(S) list is required.
 - This keeps Outlook autodiscover replies on the mail IP while avoiding
-  accidental diversion of unrelated 80/443 traffic served from other IPs.
+  diversion of traffic that arrived on non-dedicated IPs.
 
 Gateway handling:
 
@@ -59,5 +61,5 @@ Quick verification on host:
   `ip rule show | grep -E 'fwmark|from .*/32'`
 - Check mangle marks:
   `iptables -t mangle -S | grep -E 'MARK --set-mark 0x25'`
-- Confirm HTTP guard is active:
-  `iptables -t mangle -S | grep -E -- '--ctorigdst .* -j MARK --set-mark 0x25'`
+- Confirm connection-mark flow pinning rules are active:
+  `iptables -t mangle -S | grep -E 'CONNMARK --set-mark|connmark --mark'`
