@@ -1,0 +1,52 @@
+#!/bin/sh
+set -eu
+
+# Dedicated/public mail identity used for routing and selective reply marking.
+NEW_IP="{{ polaris_email_egress_effective.public_ip }}"
+PUB_IF="{{ polaris_email_egress_effective.public_interface }}"
+PUB_GW="{{ polaris_email_egress_effective.public_gateway }}"
+TABLE_ID="{{ polaris_email_egress_effective.routing_table_id }}"
+RULE_PRIO="{{ polaris_email_egress_effective.rule_priority }}"
+SOURCE_RULE_PRIO="{{ polaris_email_egress_effective.source_rule_priority }}"
+FWMARK="{{ polaris_email_egress_effective.fwmark }}"
+DOCKER_IF="{{ polaris_email_egress_effective.docker_bridge_interface }}"
+SMTP_PORTS="{{ polaris_email_egress_effective.smtp_ports | join(',') }}"
+
+ip route replace default via "$PUB_GW" dev "$PUB_IF" src "$NEW_IP" table "$TABLE_ID"
+
+if ! ip rule show | grep -Eq "fwmark ${FWMARK} .* lookup ${TABLE_ID}|fwmark ${FWMARK} lookup ${TABLE_ID}"; then
+  ip rule add fwmark "$FWMARK" lookup "$TABLE_ID" priority "$RULE_PRIO"
+fi
+
+if ! ip rule show | grep -Eq "from ${NEW_IP}/32 .* lookup ${TABLE_ID}|from ${NEW_IP}/32 lookup ${TABLE_ID}"; then
+  ip rule add from "${NEW_IP}/32" lookup "$TABLE_ID" priority "$SOURCE_RULE_PRIO"
+fi
+
+ip route flush cache
+
+# Any NEW inbound flow targeting the dedicated IP stores the egress mark in conntrack.
+# Reply packets for these connections can then restore and reuse the same policy route.
+iptables -w -t mangle -C PREROUTING -i "$PUB_IF" -d "$NEW_IP" -m conntrack --ctstate NEW -j CONNMARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -i "$PUB_IF" -d "$NEW_IP" -m conntrack --ctstate NEW -j CONNMARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C PREROUTING -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C OUTPUT -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A OUTPUT -m conntrack --ctdir REPLY -m connmark --mark "$FWMARK" -j MARK --set-mark "$FWMARK"
+
+# SMTP traffic is always pinned to the dedicated path.
+iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A PREROUTING -i "$DOCKER_IF" -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C OUTPUT -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --dports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
+
+iptables -w -t mangle -C OUTPUT -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK" 2>/dev/null \
+  || iptables -w -t mangle -A OUTPUT -p tcp -m multiport --sports "$SMTP_PORTS" -j MARK --set-mark "$FWMARK"
+
+iptables -w -t nat -C POSTROUTING -m mark --mark "$FWMARK" -o "$PUB_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j SNAT --to-source "$NEW_IP" 2>/dev/null \
+  || iptables -w -t nat -A POSTROUTING -m mark --mark "$FWMARK" -o "$PUB_IF" -p tcp -m multiport --dports "$SMTP_PORTS" -j SNAT --to-source "$NEW_IP"
