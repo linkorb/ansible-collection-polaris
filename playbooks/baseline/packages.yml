@@ -8,6 +8,7 @@
     - name: install default apt packages
       ansible.builtin.apt:
         name:
+          - aptitude
           - auditd
           - audispd-plugins
           - apt-transport-https
@@ -20,13 +21,17 @@
           - htop
           - jq
           - lsb-release
+          - mtr-tiny
+          - ncdu
           - net-tools
           - ngrep
           - nmap
           - screen
           - software-properties-common
           - sudo
+          - telnet
           - tmux
+          - traceroute
           - tree
           - unzip
           - vim
