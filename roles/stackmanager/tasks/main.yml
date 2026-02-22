@@ -23,6 +23,7 @@
   when:
   - item.host == inventory_hostname
   - tagged is not defined or (item.tag is defined and tagged == item.tag)
+  - stax is not defined or item.name in (stax | split(','))
 
 - name: 'Enrich selected stacks with path info'
   set_fact:
