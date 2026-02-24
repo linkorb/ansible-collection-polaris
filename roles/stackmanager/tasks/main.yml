@@ -34,7 +34,7 @@
   ansible.builtin.debug:
     var: manifest
     verbosity: 1
-  when: stacks_needing_tenant_info | length
+  when: (stacks_needing_tenant_info | length) > 0
 
 - name: 'Enrich selected stacks with tenant info'
   set_fact:
@@ -60,7 +60,7 @@
 - name: 'Debug: stacks_to_deploy (selected and enriched)'
   ansible.builtin.debug:
     var: stacks_to_deploy
-  when: stacks_to_deploy | length
+  when: (stacks_to_deploy | length) > 0
 
 - name: 'Deploy stacks'
   include_tasks: deploy-stack.yml
