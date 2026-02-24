@@ -13,7 +13,7 @@
         - /etc/traefik/certificates
         - /var/log/traefik
 
-    - when: polaris_traefik_tls_files | default([]) | length
+    - when: (polaris_traefik_tls_files | default([]) | length) > 0
       block:
         - name: Copy TLS cert files
           ansible.builtin.copy:
