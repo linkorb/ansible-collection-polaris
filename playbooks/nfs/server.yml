@@ -1,0 +1,187 @@
+- name: NFS - server
+  hosts: polaris_nfs_hosts
+  become: true
+  tags:
+    - polaris.nfs
+    - polaris.nfs.server
+
+  handlers:
+    - name: Reload NFS exports
+      ansible.builtin.command:
+        argv:
+          - exportfs
+          - -ra
+      changed_when: true
+
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Restart Polaris NFS backup timer
+      ansible.builtin.systemd_service:
+        name: polaris-nfs-backup.timer
+        enabled: true
+        state: restarted
+
+  tasks:
+    - name: Ensure NFS data variables are defined
+      ansible.builtin.assert:
+        that:
+          - polaris_nfs_data_disk is defined
+          - polaris_nfs_data_mount_point is defined
+          - polaris_nfs_export_paths is defined
+          - polaris_nfs_export_paths | length > 0
+          - polaris_nfs_exports is defined
+          - polaris_nfs_exports | length > 0
+        fail_msg: >-
+          Define polaris_nfs_data_disk, polaris_nfs_data_mount_point,
+          polaris_nfs_export_paths, and polaris_nfs_exports for each host in
+          polaris_nfs_hosts.
+
+    - name: Install NFS server packages
+      ansible.builtin.apt:
+        pkg: nfs-kernel-server
+        state: present
+        update_cache: true
+
+    - name: Create the NFS filesystem
+      community.general.filesystem:
+        dev: "{{ polaris_nfs_data_disk }}"
+        fstype: ext4
+
+    - name: Ensure the NFS mount point exists
+      ansible.builtin.file:
+        path: "{{ polaris_nfs_data_mount_point }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Read the NFS filesystem UUID
+      ansible.builtin.command:
+        argv:
+          - blkid
+          - -s
+          - UUID
+          - -o
+          - value
+          - "{{ polaris_nfs_data_disk }}"
+      register: polaris_nfs_data_uuid
+      changed_when: false
+
+    - name: Mount the NFS filesystem
+      ansible.posix.mount:
+        path: "{{ polaris_nfs_data_mount_point }}"
+        src: "UUID={{ polaris_nfs_data_uuid.stdout }}"
+        fstype: ext4
+        opts: defaults
+        state: mounted
+
+    - name: Ensure exported directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+      loop: "{{ polaris_nfs_export_paths }}"
+
+    - name: Ensure the NFS exports.d directory exists
+      ansible.builtin.file:
+        path: /etc/exports.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install the NFS export definition
+      ansible.builtin.template:
+        src: polaris-nfs.exports.j2
+        dest: /etc/exports.d/polaris-nfs.exports
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload NFS exports
+
+    - name: Ensure the NFS server is enabled and started
+      ansible.builtin.systemd_service:
+        name: nfs-kernel-server
+        enabled: true
+        state: started
+
+    - name: Ensure backup credentials are defined
+      ansible.builtin.assert:
+        that:
+          - polaris_nfs_backup_source is defined
+          - polaris_nfs_backup_aws_default_region is defined
+          - polaris_nfs_backup_calendar is defined
+          - polaris_nfs_backup_restic_password is defined
+          - polaris_nfs_backup_aws_access_key_id is defined
+          - polaris_nfs_backup_aws_secret_access_key is defined
+          - polaris_nfs_backup_repository is defined
+        fail_msg: >-
+          Define polaris_nfs_backup_source, polaris_nfs_backup_aws_default_region,
+          polaris_nfs_backup_calendar, polaris_nfs_backup_restic_password,
+          polaris_nfs_backup_aws_access_key_id,
+          polaris_nfs_backup_aws_secret_access_key, and
+          polaris_nfs_backup_repository when polaris_nfs_backup_enabled is true.
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Install restic
+      ansible.builtin.apt:
+        pkg: restic
+        state: present
+        update_cache: true
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Install the Polaris NFS backup environment file
+      ansible.builtin.template:
+        src: polaris-nfs-backup.env.j2
+        dest: /etc/polaris-nfs-backup.env
+        owner: root
+        group: root
+        mode: "0600"
+      notify: Restart Polaris NFS backup timer
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Install the Polaris NFS backup script
+      ansible.builtin.copy:
+        src: polaris-nfs-backup
+        dest: /usr/local/sbin/polaris-nfs-backup
+        owner: root
+        group: root
+        mode: "0750"
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Install the Polaris NFS backup systemd service
+      ansible.builtin.copy:
+        src: polaris-nfs-backup.service
+        dest: /etc/systemd/system/polaris-nfs-backup.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Install the Polaris NFS backup systemd timer
+      ansible.builtin.template:
+        src: polaris-nfs-backup.timer.j2
+        dest: /etc/systemd/system/polaris-nfs-backup.timer
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload systemd
+        - Restart Polaris NFS backup timer
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Flush backup systemd handlers before enabling the timer
+      ansible.builtin.meta: flush_handlers
+      when: polaris_nfs_backup_enabled | default(false)
+
+    - name: Enable and start the Polaris NFS backup timer
+      ansible.builtin.systemd_service:
+        name: polaris-nfs-backup.timer
+        enabled: true
+        state: started
+      when: polaris_nfs_backup_enabled | default(false)

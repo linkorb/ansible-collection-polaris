@@ -34,6 +34,10 @@
 - name: Hosts are running Traefik ingress
   ansible.builtin.import_playbook: linkorb.polaris.lb.traefik
 
+# NFS layer
+- name: Hosts are running NFS exports
+  ansible.builtin.import_playbook: linkorb.polaris.nfs.server
+
 
 # Overlay layer
 - name: Hosts are Headscale nodes

@@ -119,6 +119,68 @@ properties:
           description: A comma-separated list of options.
           examples: ['_netdev', 'defaults', 'noatime,nofail']
 
+  polaris_nfs_data_disk:
+    type: string
+    description: Dedicated block device to format and mount for NFS data.
+
+  polaris_nfs_data_mount_point:
+    type: string
+    description: Mount point for the dedicated NFS data filesystem.
+
+  polaris_nfs_export_paths:
+    type: array
+    description: Directories that should exist below the NFS data mount.
+    items:
+      type: string
+
+  polaris_nfs_exports:
+    type: array
+    description: NFS exports to write into exports.d.
+    items:
+      type: object
+      additionalProperties: false
+      required: ['path', 'clients', 'options']
+      properties:
+        path:
+          type: string
+        clients:
+          type: string
+        options:
+          type: string
+
+  polaris_nfs_backup_repository:
+    type: string
+    description: Restic repository URL for NFS backups.
+
+  polaris_nfs_backup_enabled:
+    type: boolean
+    default: false
+    description: Whether to configure the restic backup timer for NFS data.
+
+  polaris_nfs_backup_source:
+    type: string
+    description: Directory to back up with restic.
+
+  polaris_nfs_backup_aws_default_region:
+    type: string
+    description: AWS-compatible region name used by the restic S3 backend.
+
+  polaris_nfs_backup_calendar:
+    type: string
+    description: systemd calendar expression for the NFS backup timer.
+
+  polaris_nfs_backup_restic_password:
+    type: string
+    description: Restic repository password for NFS backups.
+
+  polaris_nfs_backup_aws_access_key_id:
+    type: string
+    description: S3-compatible access key ID for NFS backups.
+
+  polaris_nfs_backup_aws_secret_access_key:
+    type: string
+    description: S3-compatible secret access key for NFS backups.
+
   polaris_tailscale_authkey:
     type: string
     description: A Tailscale Node Authorization auth key.
