@@ -1,0 +1,12 @@
+[Unit]
+Description=Nightly Polaris NFS restic backup
+
+[Timer]
+OnCalendar={{ polaris_nfs_backup_calendar }}
+AccuracySec=1m
+Persistent=true
+RandomizedDelaySec=0
+Unit=polaris-nfs-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=Back up NFS data to S3-compatible object storage using restic
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/etc/polaris-nfs-backup.env
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/polaris-nfs-backup
+SyslogIdentifier=polaris-nfs-backup

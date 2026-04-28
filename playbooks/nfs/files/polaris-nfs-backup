@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+source /etc/polaris-nfs-backup.env
+
+backup_tag="$(date +%F)"
+
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export RESTIC_PASSWORD
+export AWS_DEFAULT_REGION
+export RESTIC_REPOSITORY
+
+log() {
+  printf '[%s] %s\n' "$(date --iso-8601=seconds)" "$*"
+}
+
+if ! restic snapshots >/dev/null 2>&1; then
+  log "initializing restic repository ${RESTIC_REPOSITORY}"
+  restic init
+fi
+
+log "starting backup of ${RESTIC_BACKUP_SOURCE}"
+restic backup "${RESTIC_BACKUP_SOURCE}" --host "$(hostname)" --tag "${backup_tag}"
+
+log "pruning old snapshots"
+restic forget --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 12
+
+log "backup completed successfully"
