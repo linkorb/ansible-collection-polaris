@@ -15,6 +15,7 @@
       default_addr_pool:
       - "{{ polaris_docker_swarm_default_addr_pool | default('10.135.0.0/16') }}"
     register: swarm_initialisation_info
+    when: not ansible_check_mode
   - name: Peek at swarm_initialisation_info
     debug:
       var: swarm_initialisation_info
@@ -51,6 +52,7 @@
       - "{{ polaris_docker_swarm_default_addr_pool | default('10.135.0.0/16') }}"
       remote_addrs:
       - "{{ polaris_docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
+    when: not ansible_check_mode
 
 
 - name: Swarm Workers are joined to their Swarms
@@ -79,6 +81,7 @@
       - "{{ polaris_docker_swarm_default_addr_pool | default('10.135.0.0/16') }}"
       remote_addrs:
       - "{{ polaris_docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
+    when: not ansible_check_mode
 
 
 - name: Swarm managers are labelled
@@ -96,6 +99,7 @@
         labels: "{{ node_labels | default({}) }}"
         labels_state: replace
         labels_to_remove: "{{ polaris_docker_swarm_node_labels_to_remove | default([]) }}"
+      when: not ansible_check_mode
 
 - name: Swarm workers are labelled
   hosts:
@@ -112,3 +116,4 @@
         labels: "{{ hostvars[inventory_hostname]['node_labels'] | default({}) }}"
         labels_state: replace
         labels_to_remove: "{{ polaris_docker_swarm_node_labels_to_remove | default([]) }}"
+      when: not ansible_check_mode
