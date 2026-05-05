@@ -35,22 +35,23 @@
   - name: Host has dependencies of ansible modules
     ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml
   - name: Grab a Swarm Manager JoinToken
-    ansible.builtin.set_fact:
-      target_swarm_facts: "{{ hostvars[join_swarm_initialised_by].ansible_facts }}"
-  - name: Peek at target_swarm_facts (facts about a target swarm)
-    debug:
-      var: target_swarm_facts
+    community.docker.docker_swarm_info:
+    delegate_to: "{{ join_swarm_initialised_by }}"
+    register: target_swarm_info
+  - name: Peek at target_swarm_info (facts about a target swarm)
+    ansible.builtin.debug:
+      var: target_swarm_info
       verbosity: 3
   - name: Host is joined to a Swarm as a Manager Node
     community.docker.docker_swarm:
       state: join
-      join_token: "{{ target_swarm_facts.swarm_initialisation_info.swarm_facts.JoinTokens.Manager }}"
+      join_token: "{{ target_swarm_info.swarm_facts.JoinTokens.Manager }}"
       advertise_addr: "{{ private_ip_address | default(omit) }}"
       listen_addr: "{{ private_ip_address | default(omit) }}"
       default_addr_pool:
       - "{{ polaris_docker_swarm_default_addr_pool | default('10.135.0.0/16') }}"
       remote_addrs:
-      - "{{ polaris_docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
+      - "{{ hostvars[join_swarm_initialised_by].polaris_docker_swarm_advertise_address | default(hostvars[join_swarm_initialised_by].private_ip_address) | default(hostvars[join_swarm_initialised_by].ansible_host) }}"
 
 
 - name: Swarm Workers are joined to their Swarms
@@ -63,22 +64,23 @@
   - name: Host has dependencies of ansible modules
     ansible.builtin.include_tasks: tasks/install_module_dependencies.yaml
   - name: Grab a Swarm Manager JoinToken
-    ansible.builtin.set_fact:
-      target_swarm_facts: "{{ hostvars[join_swarm_initialised_by].ansible_facts }}"
-  - name: Peek at target_swarm_facts (facts about a target swarm)
-    debug:
-      var: target_swarm_facts
+    community.docker.docker_swarm_info:
+    delegate_to: "{{ join_swarm_initialised_by }}"
+    register: target_swarm_info
+  - name: Peek at target_swarm_info (facts about a target swarm)
+    ansible.builtin.debug:
+      var: target_swarm_info
       verbosity: 3
   - name: Host is joined to a Swarm as a Worker Node
     community.docker.docker_swarm:
       state: join
-      join_token: "{{ target_swarm_facts.swarm_initialisation_info.swarm_facts.JoinTokens.Worker }}"
+      join_token: "{{ target_swarm_info.swarm_facts.JoinTokens.Worker }}"
       advertise_addr: "{{ private_ip_address | default(omit) }}"
       listen_addr: "{{ private_ip_address | default(omit) }}"
       default_addr_pool:
       - "{{ polaris_docker_swarm_default_addr_pool | default('10.135.0.0/16') }}"
       remote_addrs:
-      - "{{ polaris_docker_swarm_advertise_address | default(target_swarm_facts.default_ipv4.address) | default(target_swarm_facts.all_ipv4_addresses[0]) }}"
+      - "{{ hostvars[join_swarm_initialised_by].polaris_docker_swarm_advertise_address | default(hostvars[join_swarm_initialised_by].private_ip_address) | default(hostvars[join_swarm_initialised_by].ansible_host) }}"
 
 
 - name: Swarm managers are labelled
