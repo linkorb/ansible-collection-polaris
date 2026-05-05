@@ -31,9 +31,11 @@
         name: juicefs
         state: present
         update_cache: true
+      when: not ansible_check_mode
 
     - name: Point mount(8) to the juicefs mount program
       ansible.builtin.file:
         src: /usr/bin/juicefs
         dest: /sbin/mount.juicefs
         state: link
+      when: not ansible_check_mode
