@@ -18,6 +18,8 @@
       (databases | default([]) | length) > 0
       or
       (database_users | default([]) | length) > 0
+      or
+      (pg_users | default([]) | length) > 0
 
   - name: Create MariaDB databases
     community.mysql.mysql_db:
