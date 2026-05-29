@@ -24,6 +24,7 @@
           - mtr-tiny
           - ncdu
           - net-tools
+          - nfs-common
           - ngrep
           - nmap
           - screen
